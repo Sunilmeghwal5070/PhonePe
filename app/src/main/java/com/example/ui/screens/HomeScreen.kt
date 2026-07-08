@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 
@@ -57,6 +58,7 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
     val transactions by viewModel.allTransactions.collectAsState()
+    val userProfile by viewModel.userProfileManager.userProfile.collectAsState()
     
     var showDialogText by remember { mutableStateOf<String?>(null) }
     var showDialogTitle by remember { mutableStateOf<String?>(null) }
@@ -66,40 +68,42 @@ fun HomeScreen(
             .fillMaxSize()
             .background(Color(0xFFF5F6FA))
     ) {
-        // 1. Realistic White Top Header (Matches updated PhonePe style)
+        // 2. Beautiful "Trade with 5x leverage" Grid Ad Banner (Matches screenshot 1 perfectly!)
         item {
-            Row(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
-                    .padding(horizontal = 14.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .height(250.dp)
+                    .background(Color(0xFF2E0854))
+                    .clipToBounds()
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Profile Icon: Yellow Circle with White "Y" & QR badge overlap
+                // Top App Bar Overlay
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Box(
                         modifier = Modifier
                             .size(40.dp)
-                            .clickable {
-                                onNavigateToProfile()
-                            }
+                            .clickable { onNavigateToProfile() }
                     ) {
                         Box(
                             modifier = Modifier
                                 .size(36.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFFFBC02D)), // PhonePe Golden Yellow
+                                .background(Color(0xFFFBC02D)),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "Y",
+                                text = if (userProfile.name.isNotBlank()) userProfile.name.first().toString().uppercase() else "Y",
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 18.sp
                             )
                         }
-                        // Tiny QR scan badge overlap bottom-right
                         Box(
                             modifier = Modifier
                                 .size(16.dp)
@@ -112,47 +116,15 @@ fun HomeScreen(
                             Icon(
                                 imageVector = Icons.Default.QrCode,
                                 contentDescription = null,
-                                tint = PhonePePurple,
+                                tint = Color(0xFF5f259f),
                                 modifier = Modifier.size(10.dp)
                             )
                         }
                     }
-
-                    Spacer(modifier = Modifier.width(10.dp))
-
-                    // Location / Header Label
-                    Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "Home",
-                                fontWeight = FontWeight.Bold,
-                                color = PhonePeTextDark,
-                                fontSize = 14.sp
-                            )
-                            Icon(
-                                imageVector = Icons.Default.ArrowDropDown,
-                                contentDescription = null,
-                                tint = PhonePeTextDark,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                        Text(
-                            text = "Your Space",
-                            fontSize = 11.sp,
-                            color = PhonePeTextMuted
-                        )
-                    }
-                }
-
-                // Header Action Buttons (Help)
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
                     Icon(
                         imageVector = Icons.Default.HelpOutline,
                         contentDescription = "Help",
-                        tint = PhonePeTextDark,
+                        tint = Color.White,
                         modifier = Modifier
                             .size(24.dp)
                             .clickable {
@@ -161,17 +133,7 @@ fun HomeScreen(
                             }
                     )
                 }
-            }
-        }
 
-        // 2. Beautiful "Trade with 5x leverage" Grid Ad Banner (Matches screenshot 1 perfectly!)
-        item {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-                    .background(Color(0xFF2E0854)) // Rich deep dark indigo-purple background
-            ) {
                 // Animated Lens Distortion effect for grid
                 val infiniteTransition = rememberInfiniteTransition(label = "lens")
                 val animProgress by infiniteTransition.animateFloat(
@@ -585,8 +547,8 @@ fun HomeScreen(
                             fontSize = 10.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = PhonePeTextDark,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            maxLines = 2,
+                            overflow = TextOverflow.Visible
                         )
                     }
                 }
@@ -618,8 +580,8 @@ fun HomeScreen(
                             fontSize = 10.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = PhonePeTextDark,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            maxLines = 2,
+                            overflow = TextOverflow.Visible
                         )
                     }
                 }
@@ -1291,7 +1253,7 @@ fun PrankItemRow(
                         fontWeight = FontWeight.Bold,
                         color = PhonePeTextDark,
                         fontSize = 14.sp,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                     Spacer(modifier = Modifier.height(2.dp))

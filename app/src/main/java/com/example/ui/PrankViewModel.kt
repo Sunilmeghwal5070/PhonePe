@@ -14,13 +14,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlin.random.Random
-
 
 data class BankAccount(
     val id: String = java.util.UUID.randomUUID().toString(),
     val bankName: String,
-    val accountName: String,
+    val accountName: String = "John",
     val bankDesc: String,
     val type: String,
     val branch: String,
@@ -31,32 +29,25 @@ data class BankAccount(
 )
 
 class PrankViewModel(application: Application) : AndroidViewModel(application) {
-    
-    private val _bankAccounts = MutableStateFlow<List<BankAccount>>(
-        listOf(
-            BankAccount(
-                id = "1",
-                bankName = "State Bank of India",
-                accountName = "John",
-                bankDesc = "State Bank Of India - 0365",
-                type = ":  Saving Account",
-                branch = ":  MUMBAI MAIN",
-                ifsc = ":  UBIN0000000"
-            )
-        )
-    )
+    private val prefsManager = PrefsManager(application)
+    val userProfileManager = UserProfileManager(application)
+
+    private val _bankAccounts = MutableStateFlow<List<BankAccount>>(prefsManager.getBankAccounts())
     val bankAccounts: StateFlow<List<BankAccount>> = _bankAccounts.asStateFlow()
 
     fun addBankAccount(account: BankAccount) {
         if (_bankAccounts.value.size < 2) {
-            _bankAccounts.value = _bankAccounts.value + account
+            val newList = _bankAccounts.value + account
+            _bankAccounts.value = newList
+            prefsManager.saveBankAccounts(newList)
         }
     }
 
     fun updateBankAccount(account: BankAccount) {
-        _bankAccounts.value = _bankAccounts.value.map { if (it.id == account.id) account else it }
+        val newList = _bankAccounts.value.map { if (it.id == account.id) account else it }
+        _bankAccounts.value = newList
+        prefsManager.saveBankAccounts(newList)
     }
-
 
     private val repository: PrankRepository
     val allTransactions: StateFlow<List<PrankTransaction>>
@@ -96,11 +87,9 @@ class PrankViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // State for viewing/sharing a single receipt
     private val _selectedTransaction = MutableStateFlow<PrankTransaction?>(null)
     val selectedTransaction: StateFlow<PrankTransaction?> = _selectedTransaction.asStateFlow()
 
-    // Generate random transaction ID
     fun generateTransactionId(): String {
         val prefix = "T"
         val dateDigits = System.currentTimeMillis().toString().takeLast(10)
@@ -108,9 +97,8 @@ class PrankViewModel(application: Application) : AndroidViewModel(application) {
         return "$prefix$dateDigits$randomDigits"
     }
 
-    // Generate random 12-digit UTR
     fun generateUtr(): String {
-        val firstDigit = (6..9).random().toString() // UTRs often start with 6, 7, 8, or 9
+        val firstDigit = (6..9).random().toString()
         val remaining = (10000000000..99999999999).random().toString()
         return "$firstDigit$remaining"
     }
@@ -141,11 +129,13 @@ class PrankViewModel(application: Application) : AndroidViewModel(application) {
             
             // Deduct balance
             val actualAmount = if (amount <= 0.0) 100.0 else amount
-            _bankAccounts.value = _bankAccounts.value.map { acc ->
+            val newList = _bankAccounts.value.map { acc ->
                 if (acc.bankName == bankName || acc.bankDesc.contains(bankLast4)) {
                     acc.copy(balance = acc.balance - actualAmount)
                 } else acc
             }
+            _bankAccounts.value = newList
+            prefsManager.saveBankAccounts(newList)
 
             val resolvedUtr = customUtr.ifBlank { generateUtr() }
             val resolvedUpi = upiId.ifBlank { 

@@ -154,7 +154,7 @@ fun PopularBankItem(name: String, modifier: Modifier = Modifier, onClick: () -> 
                 .border(1.dp, Color(0xFFE0E0E0), CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            coil.compose.AsyncImage(model = getBankLogoUrl(name), contentDescription = name, modifier = Modifier.size(32.dp).clip(CircleShape), contentScale = androidx.compose.ui.layout.ContentScale.Fit)
+            com.example.ui.components.BankLogo(name, 32.dp)
         }
         Spacer(modifier = Modifier.height(8.dp))
         Text(
@@ -182,7 +182,7 @@ fun BankListItem(name: String, onClick: () -> Unit = {}) {
                 .background(Color(0xFFE0E0E0), RoundedCornerShape(8.dp)),
             contentAlignment = Alignment.Center
         ) {
-            coil.compose.AsyncImage(model = getBankLogoUrl(name), contentDescription = name, modifier = Modifier.size(32.dp).clip(RoundedCornerShape(8.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Fit)
+            com.example.ui.components.BankLogo(name, 32.dp)
         }
         Spacer(modifier = Modifier.width(16.dp))
         Text(name, fontSize = 16.sp, color = Color.Black)

@@ -48,7 +48,8 @@ enum class CheckBalanceState {
     LIST,
     PIN,
     LOADING,
-    SUCCESS
+    SUCCESS,
+    WRONG_PIN
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
@@ -85,8 +86,7 @@ fun CheckBalanceScreen(
                         if (enteredPin == selectedAccount?.pin) {
                             currentState = CheckBalanceState.LOADING
                         } else {
-                            Toast.makeText(context, "Incorrect UPI PIN", Toast.LENGTH_SHORT).show()
-                            enteredPin = ""
+                            currentState = CheckBalanceState.WRONG_PIN
                         }
                     }
                 )
@@ -97,6 +97,15 @@ fun CheckBalanceScreen(
                     delay(2000) // 2 seconds loading
                     currentState = CheckBalanceState.SUCCESS
                 }
+            }
+            CheckBalanceState.WRONG_PIN -> {
+                WrongPinScreen(
+                    bankName = selectedAccount?.bankName ?: "",
+                    bankDesc = selectedAccount?.bankDesc ?: "",
+                    onResetPin = { currentState = CheckBalanceState.PIN; enteredPin = "" },
+                    onReEnterPin = { currentState = CheckBalanceState.PIN; enteredPin = "" },
+                    onDone = { currentState = CheckBalanceState.LIST }
+                )
             }
             CheckBalanceState.SUCCESS -> {
                 SuccessScreen(

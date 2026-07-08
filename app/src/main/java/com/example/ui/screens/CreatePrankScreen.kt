@@ -45,6 +45,7 @@ fun CreatePrankScreen(
     var senderBankLast4 by remember { mutableStateOf((1000..9999).random().toString()) }
     
     var showPinScreen by remember { mutableStateOf(false) }
+    var showWrongPinScreen by remember { mutableStateOf(false) }
     var enteredPin by remember { mutableStateOf("") }
     val context = LocalContext.current
     
@@ -59,6 +60,19 @@ fun CreatePrankScreen(
     val banks = bankAccounts.map { it.bankName }
     
     var showBankDropdown by remember { mutableStateOf(false) }
+
+
+    if (showWrongPinScreen) {
+        WrongPinScreen(
+            bankName = senderBankName,
+            bankDesc = "$senderBankName - $senderBankLast4",
+            errorTitle = "Payment failed",
+            onResetPin = { showWrongPinScreen = false; enteredPin = "" },
+            onReEnterPin = { showWrongPinScreen = false; enteredPin = "" },
+            onDone = { showWrongPinScreen = false; showPinScreen = false }
+        )
+        return
+    }
 
     if (showPinScreen) {
         PinEntryScreen(
@@ -100,8 +114,7 @@ fun CreatePrankScreen(
                         }
                     )
                 } else {
-                    Toast.makeText(context, "Incorrect UPI PIN", Toast.LENGTH_SHORT).show()
-                    enteredPin = ""
+                    showWrongPinScreen = true
                 }
             }
         )

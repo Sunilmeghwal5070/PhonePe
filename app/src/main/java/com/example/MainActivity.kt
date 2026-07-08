@@ -95,7 +95,7 @@ fun MainAppLayout() {
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
             if (showBottomBar) {
-                Column(modifier = Modifier.fillMaxWidth().background(Color.White)) {
+                Column(modifier = Modifier.fillMaxWidth().background(Color.White).navigationBarsPadding()) {
                     HorizontalDivider(thickness = 1.dp, color = Color(0xFFF0F0F0))
                     Row(
                         modifier = Modifier
@@ -574,7 +574,7 @@ fun MainAppLayout() {
                 )
             }
             composable("edit_details") {
-                EditDetailsScreen(onBack = { navController.popBackStack() })
+                EditDetailsScreen(viewModel = prankViewModel, onBack = { navController.popBackStack() })
             }
             composable("bank_accounts") {
                 BankAccountsScreen(
@@ -629,6 +629,7 @@ fun MainAppLayout() {
             }
             composable("profile") {
                 ProfileScreen(
+                    viewModel = prankViewModel,
                     onBack = { navController.popBackStack() },
                     onNavigateToEditDetails = { navController.navigate("edit_details") },
                     onNavigateToAccountDetails = { navController.navigate("bank_accounts") }

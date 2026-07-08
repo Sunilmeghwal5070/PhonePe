@@ -38,7 +38,21 @@ fun RechargePinScreen(
     val account = bankAccounts.find { it.id == bankId } ?: bankAccounts.firstOrNull()
     
     var enteredPin by remember { mutableStateOf("") }
+    var showWrongPinScreen by remember { mutableStateOf(false) }
     val context = LocalContext.current
+
+
+    if (showWrongPinScreen) {
+        WrongPinScreen(
+            bankName = account?.bankName ?: "State Bank of India",
+            bankDesc = "${account?.bankName ?: "Bank"} - ${account?.bankDesc?.takeLast(4) ?: "0365"}",
+            errorTitle = "Payment failed",
+            onResetPin = { showWrongPinScreen = false; enteredPin = "" },
+            onReEnterPin = { showWrongPinScreen = false; enteredPin = "" },
+            onDone = { showWrongPinScreen = false }
+        )
+        return
+    }
 
     PinEntryScreen(
         bankName = account?.bankName ?: "Bank",
@@ -55,8 +69,7 @@ fun RechargePinScreen(
                 }
                 onSuccess()
             } else {
-                Toast.makeText(context, "Incorrect UPI PIN", Toast.LENGTH_SHORT).show()
-                enteredPin = ""
+                showWrongPinScreen = true
             }
         }
     )

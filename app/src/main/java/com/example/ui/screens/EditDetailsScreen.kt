@@ -8,19 +8,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.HelpOutline
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.outlined.CameraAlt
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Email
-import androidx.compose.material.icons.outlined.Phone
+import androidx.compose.material.icons.automirrored.filled.*
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
@@ -29,21 +24,29 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.PrankViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditDetailsScreen(onBack: () -> Unit) {
+fun EditDetailsScreen(viewModel: PrankViewModel, onBack: () -> Unit) {
+    val userProfile by viewModel.userProfileManager.userProfile.collectAsState()
+    var isEditing by remember { mutableStateOf(false) }
+    var editName by remember { mutableStateOf(userProfile.name) }
+    var editPhone by remember { mutableStateOf(userProfile.phone) }
+    val coroutineScope = rememberCoroutineScope()
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { },
+                title = { Text("Profile", fontSize = 18.sp, color = Color.Black) },
                 navigationIcon = {
-                    IconButton(onClick = onBack, modifier = Modifier.padding(start = 8.dp).background(Color.White, CircleShape).size(40.dp)) {
+                    IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.Black)
                     }
                 },
                 actions = {
-                    IconButton(onClick = { }, modifier = Modifier.padding(end = 8.dp).background(Color.White, CircleShape).size(40.dp)) {
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(end = 8.dp).background(Color.White, CircleShape).size(40.dp)) {
                         Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = "Help", tint = Color.Black)
                     }
                 },
@@ -68,15 +71,23 @@ fun EditDetailsScreen(onBack: () -> Unit) {
                     .background(Color(0xFFD0D0D0), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    Icons.Default.Person,
-                    contentDescription = "Profile Picture",
-                    tint = Color.White,
-                    modifier = Modifier.size(80.dp)
-                )
+                if (userProfile.name.isNotBlank()) {
+                    Text(
+                        text = userProfile.name.first().toString().uppercase(),
+                        color = Color.White,
+                        fontSize = 48.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                } else {
+                    Icon(
+                        Icons.Default.Person,
+                        contentDescription = "Profile Picture",
+                        tint = Color.White,
+                        modifier = Modifier.size(80.dp)
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(32.dp))
-
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -91,49 +102,70 @@ fun EditDetailsScreen(onBack: () -> Unit) {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            "John Doe",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Black
-                        )
+                        if (isEditing) {
+                            OutlinedTextField(
+                                value = editName,
+                                onValueChange = { editName = it },
+                                label = { Text("Name") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f)
+                            )
+                        } else {
+                            Text(
+                                userProfile.name,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black
+                            )
+                        }
                         Row {
-                            Icon(
-                                Icons.Outlined.Edit,
-                                contentDescription = "Edit",
-                                tint = Color.Black,
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .clickable { }
-                            )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Icon(
-                                Icons.Outlined.CameraAlt,
-                                contentDescription = "Camera",
-                                tint = Color.Black,
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .clickable { }
-                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            if (isEditing) {
+                                IconButton(onClick = {
+                                    viewModel.userProfileManager.updateProfile(editName, editPhone)
+                                    isEditing = false
+                                }) {
+                                    Icon(Icons.Default.Check, contentDescription = "Save", tint = Color(0xFF5f259f))
+                                }
+                            } else {
+                                Icon(
+                                    Icons.Outlined.Edit,
+                                    contentDescription = "Edit",
+                                    tint = Color.Black,
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .clickable { isEditing = true }
+                                )
+                            }
                         }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Outlined.Phone, contentDescription = "Phone", tint = Color.Black, modifier = Modifier.size(20.dp))
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text("+91 9876543210", fontSize = 16.sp, color = Color.Black)
+                        if (isEditing) {
+                            OutlinedTextField(
+                                value = editPhone,
+                                onValueChange = { editPhone = it },
+                                label = { Text("Phone") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        } else {
+                            Text("+91 ${userProfile.phone}", fontSize = 16.sp, color = Color.Black)
+                        }
                     }
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Outlined.Email, contentDescription = "Email", tint = Color.Black, modifier = Modifier.size(20.dp))
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text("johndoe@example.com", fontSize = 16.sp, color = Color.Black)
+                    if (!isEditing) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Outlined.Email, contentDescription = "Email", tint = Color.Black, modifier = Modifier.size(20.dp))
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text("${userProfile.name.replace(" ", "").lowercase()}@example.com", fontSize = 16.sp, color = Color.Black)
+                        }
                     }
                 }
             }
-
             Spacer(modifier = Modifier.height(16.dp))
-
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -157,9 +189,7 @@ fun EditDetailsScreen(onBack: () -> Unit) {
                         }
                         Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = Color.Black)
                     }
-                    
                     HorizontalDivider(color = Color(0xFFF0F0F0))
-                    
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -176,9 +206,7 @@ fun EditDetailsScreen(onBack: () -> Unit) {
                     }
                 }
             }
-            
             Spacer(modifier = Modifier.height(16.dp))
-            
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -194,7 +222,6 @@ fun EditDetailsScreen(onBack: () -> Unit) {
                 ) {
                     Text("Saved Addresses", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                     Spacer(modifier = Modifier.height(16.dp))
-                    
                     val stroke = Stroke(
                         width = 4f,
                         pathEffect = PathEffect.dashPathEffect(floatArrayOf(15f, 15f), 0f)
@@ -221,7 +248,6 @@ fun EditDetailsScreen(onBack: () -> Unit) {
                     }
                 }
             }
-            
             Spacer(modifier = Modifier.height(32.dp))
         }
     }
