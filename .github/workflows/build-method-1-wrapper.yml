@@ -1,16 +1,13 @@
-name: Android CI
+name: Build APK Method 1 (Wrapper)
 
 on:
   push:
-    branches: [ "main", "master" ]
-  pull_request:
-    branches: [ "main", "master" ]
+    branches: [ "**" ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -20,19 +17,25 @@ jobs:
       with:
         java-version: '21'
         distribution: 'temurin'
-        cache: gradle
 
-    - name: Decode Debug Keystore
-      run: base64 -d debug.keystore.base64 > debug.keystore
+    - name: Decode Keystore
+      run: |
+        if [ -f debug.keystore.base64 ]; then
+          base64 -d debug.keystore.base64 > debug.keystore
+        fi
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
+    - name: Generate Wrapper (If Missing)
+      run: |
+        if [ ! -f gradlew ]; then
+          gradle wrapper --gradle-version 8.9
+        fi
+        chmod +x gradlew
 
     - name: Build Debug APK
       run: ./gradlew assembleDebug
 
-    - name: Upload APK Artifact
+    - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: phonepe-app-debug
+        name: apk-method-1-wrapper
         path: app/build/outputs/apk/debug/app-debug.apk
