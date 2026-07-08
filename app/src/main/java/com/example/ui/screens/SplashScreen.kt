@@ -13,6 +13,8 @@ import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.ui.platform.LocalContext
+import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -50,28 +52,39 @@ fun SplashScreen(
             modifier = Modifier.align(Alignment.Center),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Centered App Logo
-            Image(
-                painter = androidx.compose.ui.res.painterResource(id = com.example.R.drawable.ic_launcher_foreground),
-                contentDescription = "Logo",
-                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                modifier = Modifier
-                    .size(125.dp)
-                    .clip(CircleShape)
-                    .background(PhonePePurple)
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // "PhonePe" Text below logo
-            Text(
-                text = "PhonePe",
-                color = PhonePePurple,
-                fontSize = 42.sp,
-                fontWeight = FontWeight.ExtraBold,
-                fontFamily = FontFamily.SansSerif,
-                letterSpacing = (-1).sp
-            )
+            val context = LocalContext.current
+            val resourceId = context.resources.getIdentifier("logo_phonepe", "drawable", context.packageName)
+            if (resourceId != 0) {
+                Image(
+                    painter = androidx.compose.ui.res.painterResource(id = resourceId),
+                    contentDescription = "Logo",
+                    contentScale = androidx.compose.ui.layout.ContentScale.Fit,
+                    modifier = Modifier.size(150.dp)
+                )
+            } else {
+                // Centered App Logo
+                Image(
+                    painter = androidx.compose.ui.res.painterResource(id = com.example.R.drawable.ic_launcher_foreground),
+                    contentDescription = "Logo",
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                    modifier = Modifier
+                        .size(125.dp)
+                        .clip(CircleShape)
+                        .background(PhonePePurple)
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                // "PhonePe" Text below logo
+                Text(
+                    text = "PhonePe",
+                    color = PhonePePurple,
+                    fontSize = 42.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontFamily = FontFamily.SansSerif,
+                    letterSpacing = (-1).sp
+                )
+            }
         }
 
         // Bottom Footer (Security & Compliance Badges)

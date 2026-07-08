@@ -292,8 +292,18 @@ fun QrScreen(onBack: () -> Unit = {}) {
                         Text("Supported on all UPI apps", color = Color.Gray, fontSize = 12.sp)
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            // PhonePe text logo
-                            Text("पे PhonePe", fontWeight = FontWeight.Bold, color = Color.Gray, fontSize = 12.sp)
+                            val context = LocalContext.current
+                            val ppRes = context.resources.getIdentifier("logo_phonepe", "drawable", context.packageName)
+                            if (ppRes != 0) {
+                                androidx.compose.foundation.Image(
+                                    painter = androidx.compose.ui.res.painterResource(id = ppRes),
+                                    contentDescription = "PhonePe",
+                                    modifier = Modifier.height(16.dp),
+                                    contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                                )
+                            } else {
+                                Text("पे PhonePe", fontWeight = FontWeight.Bold, color = Color.Gray, fontSize = 12.sp)
+                            }
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("BHIM", fontWeight = FontWeight.Bold, color = Color.Gray, fontSize = 12.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
                             Spacer(modifier = Modifier.width(8.dp))
@@ -311,9 +321,23 @@ fun QrScreen(onBack: () -> Unit = {}) {
                                 .background(Color.LightGray)
                         )
                         Spacer(modifier = Modifier.width(16.dp))
-                        Column {
-                            Text("Powered by", color = Color.Gray, fontSize = 10.sp)
-                            Text("UPI", fontWeight = FontWeight.Bold, fontSize = 14.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, color = Color.Gray)
+                        val contextUpi = LocalContext.current
+                        val upiRes = contextUpi.resources.getIdentifier("logo_upi", "drawable", contextUpi.packageName)
+                        if (upiRes != 0) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("Powered by", color = Color.Gray, fontSize = 10.sp)
+                                androidx.compose.foundation.Image(
+                                    painter = androidx.compose.ui.res.painterResource(id = upiRes),
+                                    contentDescription = "UPI",
+                                    modifier = Modifier.height(20.dp),
+                                    contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                                )
+                            }
+                        } else {
+                            Column {
+                                Text("Powered by", color = Color.Gray, fontSize = 10.sp)
+                                Text("UPI", fontWeight = FontWeight.Bold, fontSize = 14.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, color = Color.Gray)
+                            }
                         }
                     }
                 }
