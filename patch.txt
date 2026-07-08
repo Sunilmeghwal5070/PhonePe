@@ -1,0 +1,22 @@
+--- app/src/main/java/com/example/MainActivity.kt
++++ app/src/main/java/com/example/MainActivity.kt
+@@ -216,6 +216,9 @@
+                     onNavigateToReceipt = { transactionId ->
+                         navController.navigate("receipt/$transactionId")
+                     }
++                    , onNavigateToQr = {
++                        navController.navigate("my_qr")
++                    }
+                 )
+             }
+             composable("search") {
+@@ -227,6 +230,9 @@
+             composable("qr") {
+                 ScannerScreen(onBack = { navController.popBackStack() })
+             }
++            composable("my_qr") {
++                QrScreen()
++            }
+             composable("alerts") {
+                 AlertsScreen()
+             }
