@@ -31,7 +31,8 @@ import com.example.ui.theme.PhonePePurple
 @Composable
 fun PayAmountScreen(
     viewModel: PrankViewModel,
-    prefilledName: String = "YASHWANT MEGHWAL",
+    payeeName: String = "YASHWANT MEGHWAL",
+    upiId: String = "yashwant@ybl",
     prefilledAmount: String = "",
     onBack: () -> Unit,
     onProceed: (String, BankAccount) -> Unit
@@ -97,13 +98,13 @@ fun PayAmountScreen(
                                 .background(Color(0xFF607D8B), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(prefilledName.take(2).uppercase(), color = Color.White, fontSize = 18.sp)
+                            Text(payeeName.take(2).uppercase(), color = Color.White, fontSize = 18.sp)
                         }
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
-                            Text(prefilledName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                            Text(payeeName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Banking name: $prefilledName", color = Color.Gray, fontSize = 14.sp)
+                                Text("Banking name: $payeeName", color = Color.Gray, fontSize = 14.sp)
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF388E3C), modifier = Modifier.size(14.dp))
                             }

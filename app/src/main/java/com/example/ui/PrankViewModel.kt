@@ -31,6 +31,7 @@ data class BankAccount(
 class PrankViewModel(application: Application) : AndroidViewModel(application) {
     private val prefsManager = PrefsManager(application)
     val userProfileManager = UserProfileManager(application)
+    var selectedPayeeUpi = "yashwant@ybl"
 
     private val _bankAccounts = MutableStateFlow<List<BankAccount>>(prefsManager.getBankAccounts())
     val bankAccounts: StateFlow<List<BankAccount>> = _bankAccounts.asStateFlow()

@@ -109,7 +109,7 @@ fun CheckBalanceScreen(
             }
             CheckBalanceState.SUCCESS -> {
                 SuccessScreen(
-                    account = selectedAccount,
+                    accountId = selectedAccount?.id,
                     viewModel = viewModel,
                     onBack = { 
                         currentState = CheckBalanceState.LIST
@@ -504,7 +504,9 @@ fun LoadingScreen() {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun SuccessScreen(account: BankAccount?, viewModel: PrankViewModel, onBack: () -> Unit) {
+fun SuccessScreen(accountId: String?, viewModel: PrankViewModel, onBack: () -> Unit) {
+    val bankAccounts by viewModel.bankAccounts.collectAsState()
+    val account = bankAccounts.find { it.id == accountId }
     androidx.activity.compose.BackHandler { onBack() }
     
     Column(

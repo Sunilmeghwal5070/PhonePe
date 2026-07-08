@@ -474,7 +474,7 @@ fun PlanCard(plan: RechargePlan, onClick: () -> Unit) {
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(2.dp),
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(12.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -482,26 +482,31 @@ fun PlanCard(plan: RechargePlan, onClick: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("₹${plan.price}", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                Text("₹${plan.price}", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                 Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
             }
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Validity", color = Color.Gray, fontSize = 12.sp)
-                    Text(plan.validity, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Text("VALIDITY", color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(plan.validity, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                 }
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Data", color = Color.Gray, fontSize = 12.sp)
-                    Text(plan.data, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Text("DATA", color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(plan.data, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("VOICE", color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("Unlimited", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                 }
             }
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(plan.description, color = Color.Gray, fontSize = 12.sp)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text("Details", color = Color(0xFF5f259f), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("Subscriptions: ${plan.description.take(15)}...", color = Color.Gray, fontSize = 12.sp)
         }
     }
 }

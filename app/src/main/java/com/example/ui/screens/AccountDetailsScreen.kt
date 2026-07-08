@@ -236,6 +236,33 @@ fun AccountDetailsScreen(
                 }
             }
             
+
+            if (isEditableState && account != null) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = {
+                        val updated = account.copy(
+                            accountName = name,
+                            bankDesc = bankDesc,
+                            type = accType,
+                            branch = branch,
+                            ifsc = ifsc,
+                            balance = balance.toDoubleOrNull() ?: account.balance
+                        )
+                        viewModel.updateBankAccount(updated)
+                        onBack()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .height(52.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5f259f)),
+                    shape = RoundedCornerShape(26.dp)
+                ) {
+                    Text("SAVE CHANGES", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                }
+            }
+
             // International UPI
             Card(
                 modifier = Modifier

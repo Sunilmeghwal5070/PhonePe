@@ -239,7 +239,10 @@ fun MainAppLayout() {
             composable("qr") {
                 ScannerScreen(
                     onBack = { navController.popBackStack() },
-                    onScanComplete = { navController.navigate("pay_amount") }
+                    onScanSuccess = { name, upi ->
+                        prankViewModel.selectedPayeeUpi = upi
+                        navController.navigate("pay_amount/${java.net.URLEncoder.encode(name, "UTF-8")}")
+                    }
                 )
             }
 
@@ -394,7 +397,7 @@ fun MainAppLayout() {
                 // We'll modify PayAmountScreen to accept prefilled name
                 PayAmountScreen(
                     viewModel = prankViewModel,
-                    prefilledName = name,
+                    payeeName = name,
                     prefilledAmount = amount,
                     onBack = { navController.popBackStack() },
                     onProceed = { amt, bankAccount -> 
@@ -411,12 +414,21 @@ fun MainAppLayout() {
             }
             
             
-            composable("pay_amount") {
+            composable(
+                "pay_amount/{name}",
+                arguments = listOf(
+                    androidx.navigation.navArgument("name") { type = androidx.navigation.NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val name = java.net.URLDecoder.decode(backStackEntry.arguments?.getString("name") ?: "Karishna Karishna", "UTF-8")
+                
                 PayAmountScreen(
                     viewModel = prankViewModel,
+                    payeeName = name,
+                    upiId = prankViewModel.selectedPayeeUpi,
                     onBack = { navController.popBackStack() },
                     onProceed = { amount, bankAccount -> 
-                        navController.navigate("pay_pin/$amount/${bankAccount.id}/Karishna%20Karishna")
+                        navController.navigate("pay_pin/$amount/${bankAccount.id}/${java.net.URLEncoder.encode(name, "UTF-8")}")
                     }
                 )
             }
@@ -510,6 +522,7 @@ fun MainAppLayout() {
                 PaymentSuccessScreen(
                     amount = amount,
                     payeeName = name,
+                    upiId = prankViewModel.selectedPayeeUpi,
                     onDone = {
                         navController.navigate("home") {
                             popUpTo("home") { inclusive = true }

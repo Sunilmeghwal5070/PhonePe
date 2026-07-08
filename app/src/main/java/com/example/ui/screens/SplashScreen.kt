@@ -59,7 +59,7 @@ fun SplashScreen(
                     painter = androidx.compose.ui.res.painterResource(id = resourceId),
                     contentDescription = "Logo",
                     contentScale = androidx.compose.ui.layout.ContentScale.Fit,
-                    modifier = Modifier.size(150.dp)
+                    modifier = Modifier.size(150.dp).clip(CircleShape)
                 )
             } else {
                 // Centered App Logo

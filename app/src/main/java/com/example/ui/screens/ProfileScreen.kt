@@ -1,8 +1,6 @@
 package com.example.ui.screens
 
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -20,10 +18,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.ui.PrankViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,6 +33,7 @@ fun ProfileScreen(
     onNavigateToAccountDetails: () -> Unit = {}
 ) {
     val userProfile by viewModel.userProfileManager.userProfile.collectAsState()
+    val bankAccounts by viewModel.bankAccounts.collectAsState()
 
     Scaffold(
         topBar = {
@@ -67,12 +66,12 @@ fun ProfileScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color(0xFF5f259f))
-                    .padding(bottom = 24.dp)
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                        .clickable { onNavigateToEditDetails() }
+                        .padding(horizontal = 16.dp, vertical = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
@@ -91,21 +90,20 @@ fun ProfileScreen(
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(userProfile.name, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        Text(userProfile.name.ifBlank { "User Name" }, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text("+91 ${userProfile.phone}", fontSize = 14.sp, color = Color(0xFFD1C4E9))
+                        Text("+91 ${userProfile.phone.ifBlank { "9876543210" }}", fontSize = 14.sp, color = Color(0xFFD1C4E9))
                     }
                     Icon(
                         Icons.AutoMirrored.Filled.KeyboardArrowRight,
                         contentDescription = "Edit Profile",
-                        tint = Color.White,
-                        modifier = Modifier.clickable { onNavigateToEditDetails() }
+                        tint = Color.White
                     )
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             Text(
                 "Payment Management",
                 fontSize = 14.sp,
@@ -113,7 +111,7 @@ fun ProfileScreen(
                 color = Color.Gray,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
-            
+
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -125,7 +123,7 @@ fun ProfileScreen(
                     ProfileMenuItem(
                         icon = Icons.Default.AccountBalance,
                         title = "Bank Accounts",
-                        subtitle = "1 Account",
+                        subtitle = "${bankAccounts.size} Account${if (bankAccounts.size > 1) "s" else ""}",
                         onClick = onNavigateToAccountDetails
                     )
                     HorizontalDivider(color = Color(0xFFF0F0F0))
@@ -143,6 +141,26 @@ fun ProfileScreen(
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                Column {
+                    val context = androidx.compose.ui.platform.LocalContext.current
+                    ProfileMenuItem(
+                        icon = Icons.Default.Info,
+                        title = "About PhonePe",
+                        onClick = { android.widget.Toast.makeText(context, "developer by Sunil meghwal", android.widget.Toast.LENGTH_SHORT).show() }
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }

@@ -23,7 +23,7 @@ import com.example.ui.theme.PhonePePurple
 fun WrongPinScreen(
     bankName: String,
     bankDesc: String,
-    errorTitle: String = "Unable to fetch bank\nbalance",
+    errorTitle: String = "Payment failed",
     onResetPin: () -> Unit,
     onReEnterPin: () -> Unit,
     onDone: () -> Unit
@@ -71,7 +71,7 @@ fun WrongPinScreen(
                 .padding(24.dp)
         ) {
             Text(
-                text = "Wrong UPI PIN",
+                text = if (errorTitle.contains("Insufficient", ignoreCase = true)) "Insufficient Balance" else "Wrong UPI PIN",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
@@ -93,7 +93,7 @@ fun WrongPinScreen(
             Row(verticalAlignment = Alignment.Top) {
                 Text("•", fontSize = 16.sp, color = Color.Black, modifier = Modifier.padding(end = 8.dp))
                 Text(
-                    text = "You've entered the wrong UPI PIN. Please check and try again.",
+                    text = if (errorTitle.contains("Insufficient", ignoreCase = true)) "Your bank account does not have sufficient balance for this transaction. Please try again with a lower amount or use another account." else "You've entered the wrong UPI PIN. Please check and try again.",
                     fontSize = 15.sp,
                     color = Color.DarkGray,
                     lineHeight = 20.sp

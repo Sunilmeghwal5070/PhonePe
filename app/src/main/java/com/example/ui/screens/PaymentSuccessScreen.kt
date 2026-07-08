@@ -10,6 +10,12 @@ import androidx.compose.material3.*
 import androidx.compose.animation.core.*
 import android.media.MediaPlayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import android.graphics.Bitmap
+import androidx.core.content.FileProvider
+import android.content.Intent
+import java.io.File
+import java.io.FileOutputStream
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.draw.scale
@@ -48,6 +54,31 @@ fun PaymentSuccessScreen(
             } catch (e: Exception) {
                 // Ignore
             }
+        }
+    }
+
+    
+    val view = LocalView.current
+    val onShare = {
+        try {
+            val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+            val canvas = android.graphics.Canvas(bitmap)
+            view.draw(canvas)
+            
+            val file = File(context.cacheDir, "receipt.png")
+            val stream = FileOutputStream(file)
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+            stream.close()
+            
+            val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "image/png"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            context.startActivity(Intent.createChooser(intent, "Share Receipt"))
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -142,7 +173,7 @@ fun PaymentSuccessScreen(
                     TextButton(onClick = onViewDetails) {
                         Text("View Details", color = Color.Black)
                     }
-                    TextButton(onClick = { /* Share Receipt */ }) {
+                    TextButton(onClick = onShare) {
                         Text("Share Receipt", color = Color.Black)
                     }
                 }

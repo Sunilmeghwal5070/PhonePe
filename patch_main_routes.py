@@ -1,140 +1,95 @@
 import re
 
-with open('/app/applet/app/src/main/java/com/example/MainActivity.kt', 'r') as f:
+with open("app/src/main/java/com/example/MainActivity.kt", "r") as f:
     content = f.read()
 
-# Make sure imports are present
-if "import com.example.ui.screens.PayAmountScreen" not in content:
-    content = content.replace("import com.example.ui.screens.HomeScreen", 
-'''import com.example.ui.screens.HomeScreen
-import com.example.ui.screens.PayAmountScreen
-import com.example.ui.screens.PaymentProcessingScreen
-import com.example.ui.screens.PaymentSuccessScreen
-import com.example.ui.screens.PinEntryScreen
-import com.example.ui.BankAccount''')
-
-# Update QR navigation in ScannerScreen
-scanner_route_old = '''            composable("qr") {
-                ScannerScreen(onBack = { navController.popBackStack() })
-            }'''
-scanner_route_new = '''            composable("qr") {
+# I will update ScannerScreen to just save it to viewModel
+old_scanner = """            composable("qr") {
                 ScannerScreen(
                     onBack = { navController.popBackStack() },
-                    onScanComplete = { navController.navigate("pay_amount") }
+                    onScanSuccess = { name, upi ->
+                        navController.navigate("pay_amount/${java.net.URLEncoder.encode(name, "UTF-8")}/${java.net.URLEncoder.encode(upi, "UTF-8")}")
+                    }
                 )
-            }'''
-content = content.replace(scanner_route_old, scanner_route_new)
+            }"""
+new_scanner = """            composable("qr") {
+                ScannerScreen(
+                    onBack = { navController.popBackStack() },
+                    onScanSuccess = { name, upi ->
+                        prankViewModel.selectedPayeeUpi = upi
+                        navController.navigate("pay_amount/${java.net.URLEncoder.encode(name, "UTF-8")}")
+                    }
+                )
+            }"""
+content = content.replace(old_scanner, new_scanner)
 
-# Add new routes
-if 'composable("pay_amount")' not in content:
-    routes = '''
-            composable("pay_amount") {
+# And revert pay_amount route back to single param
+old_pay_amount = """            composable(
+                "pay_amount/{name}/{upi}",
+                arguments = listOf(
+                    androidx.navigation.navArgument("name") { type = androidx.navigation.NavType.StringType },
+                    androidx.navigation.navArgument("upi") { type = androidx.navigation.NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val name = java.net.URLDecoder.decode(backStackEntry.arguments?.getString("name") ?: "Karishna Karishna", "UTF-8")
+                val upi = java.net.URLDecoder.decode(backStackEntry.arguments?.getString("upi") ?: "unknown@upi", "UTF-8")
+                
+                PayAmountScreen(
+                    viewModel = prankViewModel,
+                    payeeName = name,
+                    upiId = upi,
+                    onBack = { navController.popBackStack() },
+                    onProceed = { amount, bankAccount -> 
+                        navController.navigate("pay_pin/$amount/${bankAccount.id}/${java.net.URLEncoder.encode(name, "UTF-8")}")
+                    }
+                )
+            }"""
+new_pay_amount = """            composable(
+                "pay_amount/{name}",
+                arguments = listOf(
+                    androidx.navigation.navArgument("name") { type = androidx.navigation.NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val name = java.net.URLDecoder.decode(backStackEntry.arguments?.getString("name") ?: "Karishna Karishna", "UTF-8")
+                
+                PayAmountScreen(
+                    viewModel = prankViewModel,
+                    payeeName = name,
+                    upiId = prankViewModel.selectedPayeeUpi,
+                    onBack = { navController.popBackStack() },
+                    onProceed = { amount, bankAccount -> 
+                        navController.navigate("pay_pin/$amount/${bankAccount.id}/${java.net.URLEncoder.encode(name, "UTF-8")}")
+                    }
+                )
+            }"""
+content = content.replace(old_pay_amount, new_pay_amount)
+
+# Update the generic "pay_amount" no-param route which might still be there for manual clicks
+old_pay_amount_noparam = """            composable("pay_amount") {
                 PayAmountScreen(
                     viewModel = prankViewModel,
                     onBack = { navController.popBackStack() },
                     onProceed = { amount, bankAccount -> 
-                        navController.navigate("pay_pin/$amount/${bankAccount.id}")
+                        navController.navigate("pay_pin/$amount/${bankAccount.id}/Karishna%20Karishna")
                     }
                 )
-            }
-            
-            composable(
-                "pay_pin/{amount}/{bankId}",
-                arguments = listOf(
-                    navArgument("amount") { type = NavType.StringType },
-                    navArgument("bankId") { type = NavType.StringType }
-                )
-            ) { backStackEntry ->
-                val amount = backStackEntry.arguments?.getString("amount") ?: "0"
-                val bankId = backStackEntry.arguments?.getString("bankId") ?: ""
-                val bankAccounts by prankViewModel.bankAccounts.collectAsState()
-                val selectedBank = bankAccounts.find { it.id == bankId }
-                
-                var enteredPin by remember { mutableStateOf("") }
-                val context = LocalContext.current
-                
-                PinEntryScreen(
-                    bankName = selectedBank?.bankName ?: "Bank",
-                    actionText = "Sending: ₹$amount",
-                    pin = enteredPin,
-                    onPinChange = { enteredPin = it },
-                    onSubmit = {
-                        val correctPin = selectedBank?.pin ?: "1234"
-                        if (enteredPin == correctPin) {
-                            navController.navigate("pay_processing/$amount/$bankId") {
-                                popUpTo("pay_amount") { inclusive = true }
-                            }
-                        } else {
-                            Toast.makeText(context, "Incorrect UPI PIN", Toast.LENGTH_SHORT).show()
-                            enteredPin = ""
-                        }
-                    }
-                )
-            }
-            
-            composable(
-                "pay_processing/{amount}/{bankId}",
-                arguments = listOf(
-                    navArgument("amount") { type = NavType.StringType },
-                    navArgument("bankId") { type = NavType.StringType }
-                )
-            ) { backStackEntry ->
-                val amount = backStackEntry.arguments?.getString("amount") ?: "0"
-                val bankId = backStackEntry.arguments?.getString("bankId") ?: ""
-                val bankAccounts by prankViewModel.bankAccounts.collectAsState()
-                val selectedBank = bankAccounts.find { it.id == bankId }
-                
-                PaymentProcessingScreen(
-                    onProcessingComplete = {
-                        // Insert transaction
-                        prankViewModel.insertTransaction(
-                            name = "Karishna Karishna",
-                            phone = "9876543210",
-                            upiId = "krishna88750@axl",
-                            amount = amount.toDoubleOrNull() ?: 100.0,
-                            status = "SUCCESS",
-                            bankName = selectedBank?.bankName ?: "State Bank of India",
-                            bankLast4 = selectedBank?.bankDesc?.takeLast(4) ?: "0365",
-                            customTxId = "",
-                            customUtr = "",
-                            timestamp = System.currentTimeMillis(),
-                            onSuccess = { insertedId ->
-                                navController.navigate("pay_success/$amount/$insertedId") {
-                                    popUpTo("home")
-                                }
-                            }
-                        )
-                    }
-                )
-            }
-            
-            composable(
-                "pay_success/{amount}/{transactionId}",
-                arguments = listOf(
-                    navArgument("amount") { type = NavType.StringType },
-                    navArgument("transactionId") { type = NavType.IntType }
-                )
-            ) { backStackEntry ->
-                val amount = backStackEntry.arguments?.getString("amount") ?: "0"
-                val txId = backStackEntry.arguments?.getInt("transactionId") ?: 0
-                
-                PaymentSuccessScreen(
+            }"""
+content = content.replace(old_pay_amount_noparam, "")
+
+# And in payment success, inject upiId
+old_pay_success = """                PaymentSuccessScreen(
                     amount = amount,
-                    onDone = {
-                        navController.navigate("home") {
-                            popUpTo("home") { inclusive = true }
-                        }
-                    },
-                    onViewDetails = {
-                        navController.navigate("receipt/$txId") {
-                            popUpTo("home")
-                        }
-                    }
-                )
-            }
-'''
-    content = content.replace('composable("create") {', routes + '\n            composable("create") {')
+                    payeeName = name,
+                    onDone = {"""
+new_pay_success = """                PaymentSuccessScreen(
+                    amount = amount,
+                    payeeName = name,
+                    upiId = prankViewModel.selectedPayeeUpi,
+                    onDone = {"""
+content = content.replace(old_pay_success, new_pay_success)
 
-with open('/app/applet/app/src/main/java/com/example/MainActivity.kt', 'w') as f:
+# And in CreatePrankScreen, when we hit pay, we can update selectedPayeeUpi
+# Actually, I'll update it inside CreatePrankScreen if needed, or it's fine.
+
+with open("app/src/main/java/com/example/MainActivity.kt", "w") as f:
     f.write(content)
-

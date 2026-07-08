@@ -46,6 +46,7 @@ fun CreatePrankScreen(
     
     var showPinScreen by remember { mutableStateOf(false) }
     var showWrongPinScreen by remember { mutableStateOf(false) }
+    var pinErrorTitle by remember { mutableStateOf("Payment failed") }
     var enteredPin by remember { mutableStateOf("") }
     val context = LocalContext.current
     
@@ -66,7 +67,7 @@ fun CreatePrankScreen(
         WrongPinScreen(
             bankName = senderBankName,
             bankDesc = "$senderBankName - $senderBankLast4",
-            errorTitle = "Payment failed",
+            errorTitle = pinErrorTitle,
             onResetPin = { showWrongPinScreen = false; enteredPin = "" },
             onReEnterPin = { showWrongPinScreen = false; enteredPin = "" },
             onDone = { showWrongPinScreen = false; showPinScreen = false }
@@ -84,6 +85,11 @@ fun CreatePrankScreen(
                 val correctPin = selectedBank?.pin ?: "1234"
                 if (enteredPin == correctPin) {
                     val finalAmount = amount.toDoubleOrNull() ?: 100.0
+                    if (selectedBank != null && finalAmount > selectedBank!!.balance) {
+                        pinErrorTitle = "Insufficient Balance"
+                        showWrongPinScreen = true
+                        return@PinEntryScreen
+                    }
                     var timestamp = System.currentTimeMillis()
                     
                     if (!useCurrentTime && customDateString.isNotBlank()) {
@@ -114,7 +120,8 @@ fun CreatePrankScreen(
                         }
                     )
                 } else {
-                    showWrongPinScreen = true
+                    showWrongPinScreen = true; pinErrorTitle = "Payment failed"
+                        return@PinEntryScreen
                 }
             }
         )
@@ -371,6 +378,7 @@ fun CreatePrankScreen(
             // Create Prank Button
             Button(
                 onClick = {
+                    viewModel.selectedPayeeUpi = receiverUpiId
                     showPinScreen = true
                 },
                 modifier = Modifier

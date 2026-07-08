@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -71,6 +72,7 @@ fun ReceiptScreen(
     }
     
     val tx by viewModel.selectedTransaction.collectAsState()
+    val userProfile by viewModel.userProfileManager.userProfile.collectAsState()
     
     // For History clicks, we can skip animation if it's old.
     // If it's a new transaction just created, it should play the animation.
@@ -227,7 +229,7 @@ fun ReceiptScreen(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Text("Received from", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.Black)
+                            Text(if (currentTx.type == "PAID") "Paid to" else "Received from", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.Black)
                             Spacer(modifier = Modifier.height(16.dp))
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -242,10 +244,10 @@ fun ReceiptScreen(
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Icon(
-                                            imageVector = Icons.Default.ArrowBack, // Rotate to look like CallReceived
+                                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                                             contentDescription = null,
                                             tint = Color.White,
-                                            modifier = Modifier.size(20.dp).rotate(-45f)
+                                            modifier = Modifier.size(20.dp).rotate(if (currentTx.type == "PAID") -45f else 135f)
                                         )
                                     }
                                     Spacer(modifier = Modifier.width(12.dp))
@@ -312,7 +314,7 @@ fun ReceiptScreen(
                                         }
                                     }
                                     Spacer(modifier = Modifier.height(12.dp))
-                                    Text("Credited to", fontSize = 12.sp, color = Color.Gray)
+                                    Text(if (currentTx.type == "PAID") "Debited from" else "Credited to", fontSize = 12.sp, color = Color.Gray)
                                     Spacer(modifier = Modifier.height(6.dp))
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Box(
@@ -321,10 +323,10 @@ fun ReceiptScreen(
                                                 .border(1.dp, Color(0xFFEEEEEE), RoundedCornerShape(8.dp)),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            Text("S", color = Color(0xFFe31837), fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                            Text(if (currentTx.type == "PAID") currentTx.senderBankName.take(1).uppercase() else currentTx.receiverName.take(1).uppercase(), color = Color(0xFFe31837), fontWeight = FontWeight.Bold, fontSize = 18.sp)
                                         }
                                         Spacer(modifier = Modifier.width(12.dp))
-                                        Text("Sunil", fontSize = 15.sp, color = Color.DarkGray)
+                                        Text(if (currentTx.type == "PAID") userProfile.name else currentTx.receiverName, fontSize = 15.sp, color = Color.DarkGray)
                                         Spacer(modifier = Modifier.weight(1f))
                                         Text("₹${currentTx.amount.toInt()}", fontSize = 15.sp, color = Color.DarkGray)
                                     }
