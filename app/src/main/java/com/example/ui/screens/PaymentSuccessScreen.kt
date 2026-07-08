@@ -8,6 +8,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.animation.core.*
+import android.media.MediaPlayer
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.draw.scale
 import androidx.compose.runtime.Composable
@@ -30,6 +33,23 @@ fun PaymentSuccessScreen(
     onViewDetails: () -> Unit
 ) {
     val currentTime = SimpleDateFormat("dd MMMM yyyy 'at' hh:mm a", Locale.getDefault()).format(Date())
+
+    
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        val resourceId = context.resources.getIdentifier("payment_success", "raw", context.packageName)
+        if (resourceId != 0) {
+            try {
+                val mediaPlayer = MediaPlayer.create(context, resourceId)
+                mediaPlayer.start()
+                mediaPlayer.setOnCompletionListener {
+                    it.release()
+                }
+            } catch (e: Exception) {
+                // Ignore
+            }
+        }
+    }
 
     val infiniteTransition = rememberInfiniteTransition()
     val scale by infiniteTransition.animateFloat(

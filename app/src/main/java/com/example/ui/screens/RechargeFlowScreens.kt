@@ -103,6 +103,23 @@ fun RechargeSuccessScreen(
     onDone: () -> Unit
 ) {
 
+    
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        val resourceId = context.resources.getIdentifier("payment_success", "raw", context.packageName)
+        if (resourceId != 0) {
+            try {
+                val mediaPlayer = android.media.MediaPlayer.create(context, resourceId)
+                mediaPlayer.start()
+                mediaPlayer.setOnCompletionListener {
+                    it.release()
+                }
+            } catch (e: Exception) {
+                // Ignore
+            }
+        }
+    }
+
     val infiniteTransition = rememberInfiniteTransition()
     val scale by infiniteTransition.animateFloat(
         initialValue = 1f,
