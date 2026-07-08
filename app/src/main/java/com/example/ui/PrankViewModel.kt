@@ -29,6 +29,7 @@ data class BankAccount(
 )
 
 class PrankViewModel(application: Application) : AndroidViewModel(application) {
+    var hasShownRechargeReminder = false
     private val prefsManager = PrefsManager(application)
     val userProfileManager = UserProfileManager(application)
     var selectedPayeeUpi = "yashwant@ybl"
@@ -46,6 +47,12 @@ class PrankViewModel(application: Application) : AndroidViewModel(application) {
 
     fun updateBankAccount(account: BankAccount) {
         val newList = _bankAccounts.value.map { if (it.id == account.id) account else it }
+        _bankAccounts.value = newList
+        prefsManager.saveBankAccounts(newList)
+    }
+
+    fun deleteBankAccount(accountId: String) {
+        val newList = _bankAccounts.value.filter { it.id != accountId }
         _bankAccounts.value = newList
         prefsManager.saveBankAccounts(newList)
     }

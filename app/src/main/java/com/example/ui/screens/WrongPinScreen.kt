@@ -54,7 +54,7 @@ fun WrongPinScreen(
             Spacer(modifier = Modifier.height(24.dp))
             Text(
                 text = errorTitle,
-                color = Color(0xFF212121),
+                color = Color.White,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
@@ -108,7 +108,7 @@ fun WrongPinScreen(
                 OutlinedButton(
                     onClick = onResetPin,
                     modifier = Modifier.weight(1f),
-                    border = borderStroke(Color(0xFF5f259f)),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF5f259f)),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF5f259f))
                 ) {
                     Text("RESET UPI PIN")
@@ -116,7 +116,7 @@ fun WrongPinScreen(
                 OutlinedButton(
                     onClick = onReEnterPin,
                     modifier = Modifier.weight(1f),
-                    border = borderStroke(Color(0xFF5f259f)),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF5f259f)),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF5f259f))
                 ) {
                     Text("RE-ENTER UPI PIN")
@@ -140,5 +140,4 @@ fun WrongPinScreen(
     }
 }
 
-@Composable
-fun borderStroke(color: Color) = androidx.compose.foundation.BorderStroke(1.dp, color)
+

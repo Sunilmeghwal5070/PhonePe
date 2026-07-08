@@ -70,7 +70,7 @@ fun CreatePrankScreen(
             errorTitle = pinErrorTitle,
             onResetPin = { showWrongPinScreen = false; enteredPin = "" },
             onReEnterPin = { showWrongPinScreen = false; enteredPin = "" },
-            onDone = { showWrongPinScreen = false; showPinScreen = false }
+            onDone = { showWrongPinScreen = false; showPinScreen = false; enteredPin = "" }
         )
         return
     }
@@ -116,7 +116,7 @@ fun CreatePrankScreen(
                         customUtr = customUtr,
                         timestamp = timestamp,
                         onSuccess = { insertedId ->
-                            onNavigateToReceipt(insertedId)
+                            enteredPin = ""; onNavigateToReceipt(insertedId)
                         }
                     )
                 } else {

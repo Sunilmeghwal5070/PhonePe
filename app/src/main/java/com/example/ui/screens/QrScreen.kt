@@ -321,23 +321,17 @@ fun QrScreen(onBack: () -> Unit = {}) {
                                 .background(Color.LightGray)
                         )
                         Spacer(modifier = Modifier.width(16.dp))
-                        val contextUpi = LocalContext.current
-                        val upiRes = contextUpi.resources.getIdentifier("logo_upi", "drawable", contextUpi.packageName)
-                        if (upiRes != 0) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("Powered by", color = Color.Gray, fontSize = 10.sp)
-                                androidx.compose.foundation.Image(
-                                    painter = androidx.compose.ui.res.painterResource(id = upiRes),
-                                    contentDescription = "UPI",
-                                    modifier = Modifier.height(20.dp),
-                                    contentScale = androidx.compose.ui.layout.ContentScale.Fit
-                                )
-                            }
-                        } else {
-                            Column {
-                                Text("Powered by", color = Color.Gray, fontSize = 10.sp)
-                                Text("UPI", fontWeight = FontWeight.Bold, fontSize = 14.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, color = Color.Gray)
-                            }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("Powered by", color = Color.Gray, fontSize = 10.sp)
+                            coil.compose.AsyncImage(
+                                model = coil.request.ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
+                                    .data("https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/1024px-UPI-Logo-vector.svg.png")
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = "UPI",
+                                modifier = Modifier.height(20.dp),
+                                contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                            )
                         }
                     }
                 }

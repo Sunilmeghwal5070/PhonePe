@@ -2,6 +2,7 @@ package com.example.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,6 +27,8 @@ import com.example.data.PrankTransaction
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.material.icons.filled.PhoneIphone
+import androidx.compose.material.icons.filled.Bolt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -224,6 +227,7 @@ fun HistoryScreen(
 fun HistoryItemRow(tx: PrankTransaction, onClick: () -> Unit) {
     val sdfDayMonth = remember { SimpleDateFormat("dd MMM", Locale.getDefault()) }
     val isReceived = tx.type == "RECEIVED"
+    val isRecharge = tx.type == "RECHARGE"
     val isFailed = tx.status == "FAILED"
     
     val dateStr = remember(tx.timestamp) { 
@@ -236,7 +240,6 @@ fun HistoryItemRow(tx: PrankTransaction, onClick: () -> Unit) {
             sdfDayMonth.format(Date(tx.timestamp))
         }
     }
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -249,15 +252,33 @@ fun HistoryItemRow(tx: PrankTransaction, onClick: () -> Unit) {
         Box(
             modifier = Modifier
                 .size(44.dp)
-                .background(Color(0xFFF3F4F6), RoundedCornerShape(12.dp)),
+                .background(if (isRecharge) Color.Transparent else Color(0xFFF3F4F6), RoundedCornerShape(if(isRecharge) 8.dp else 12.dp))
+                .border(if (isRecharge) 1.dp else 0.dp, if(isRecharge) Color.LightGray else Color.Transparent, RoundedCornerShape(8.dp)),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = if (isReceived) Icons.AutoMirrored.Filled.CallReceived else Icons.AutoMirrored.Filled.CallMade,
-                contentDescription = null,
-                tint = Color.Black,
-                modifier = Modifier.size(24.dp)
-            )
+            if (isRecharge) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Default.PhoneIphone,
+                        contentDescription = null,
+                        tint = Color.Black,
+                        modifier = Modifier.size(28.dp)
+                    )
+                    Icon(
+                        imageVector = Icons.Default.Bolt,
+                        contentDescription = null,
+                        tint = Color.Black,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            } else {
+                Icon(
+                    imageVector = if (isReceived) Icons.AutoMirrored.Filled.CallReceived else Icons.AutoMirrored.Filled.CallMade,
+                    contentDescription = null,
+                    tint = Color.Black,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
         }
         
         Spacer(modifier = Modifier.width(16.dp))
@@ -265,7 +286,7 @@ fun HistoryItemRow(tx: PrankTransaction, onClick: () -> Unit) {
         // Middle Column
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = if (isReceived) "Received from" else "Paid to",
+                text = if (isRecharge) { if(isFailed) "Mobile recharge for" else "Mobile recharged" } else if (isReceived) "Received from" else "Paid to",
                 color = Color.Gray,
                 fontSize = 12.sp
             )
@@ -313,21 +334,8 @@ fun HistoryItemRow(tx: PrankTransaction, onClick: () -> Unit) {
                         fontSize = 12.sp
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    // PhonePe Icon Placeholder (S logo)
-                    Box(
-                        modifier = Modifier
-                            .size(14.dp)
-                            .background(Color.Transparent),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "S", 
-                            color = Color(0xFF5f259f), 
-                            fontSize = 10.sp, 
-                            fontWeight = FontWeight.ExtraBold, 
-                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
-                        )
-                    }
+                    // Bank Logo
+                    com.example.ui.components.BankLogo(bankName = tx.senderBankName, size = 16.dp)
                 }
             }
         }

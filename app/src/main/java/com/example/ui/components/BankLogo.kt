@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 
-
 @SuppressLint("DiscouragedApi")
 @Composable
 fun BankLogo(bankName: String, size: Dp = 40.dp, modifier: Modifier = Modifier) {
@@ -33,7 +32,6 @@ fun BankLogo(bankName: String, size: Dp = 40.dp, modifier: Modifier = Modifier) 
     
     val safeBankName = bankName.lowercase().replace(" ", "_").replace("-", "_")
     
-    // Map common names to standard short codes for local images
     val imageCode = when {
         safeBankName.contains("state_bank") || safeBankName == "sbi" -> "sbi"
         safeBankName.contains("hdfc") -> "hdfc"
@@ -53,12 +51,12 @@ fun BankLogo(bankName: String, size: Dp = 40.dp, modifier: Modifier = Modifier) 
         else -> safeBankName
     }
     
-    // Expected file name: logo_sbi.png, logo_hdfc.png, etc. in res/drawable
     val expectedDrawableName = "logo_$imageCode"
     val resourceId = context.resources.getIdentifier(expectedDrawableName, "drawable", context.packageName)
     
+    val isSmall = size < 24.dp
+    
     if (resourceId != 0) {
-        // Local image found
         androidx.compose.foundation.Image(
             painter = painterResource(id = resourceId),
             contentDescription = bankName,
@@ -67,10 +65,8 @@ fun BankLogo(bankName: String, size: Dp = 40.dp, modifier: Modifier = Modifier) 
                 .size(size)
                 .clip(CircleShape)
                 .background(Color.White)
-                .border(1.dp, Color(0xFFEEEEEE), CircleShape)
         )
     } else {
-        // Fallback to clearbit
         val domain = when (imageCode) {
             "sbi" -> "sbi.co.in"
             "hdfc" -> "hdfcbank.com"
@@ -101,15 +97,12 @@ fun BankLogo(bankName: String, size: Dp = 40.dp, modifier: Modifier = Modifier) 
                     .size(size)
                     .clip(CircleShape)
                     .background(Color.White)
-                    .border(1.dp, Color(0xFFEEEEEE), CircleShape)
-                    .padding(4.dp)
             )
         } else {
             Box(
                 modifier = modifier
                     .size(size)
-                    .background(Color.White, CircleShape)
-                    .border(1.dp, Color(0xFFEEEEEE), CircleShape),
+                    .background(Color.White, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(Icons.Default.AccountBalance, contentDescription = null, tint = Color(0xFF1976D2), modifier = Modifier.size(size * 0.6f))

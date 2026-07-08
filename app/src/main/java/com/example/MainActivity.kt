@@ -291,10 +291,11 @@ fun MainAppLayout() {
                 com.example.ui.screens.RechargePinScreen(
                     amount = amount,
                     bankId = bankId,
+                    name = name,
                     viewModel = prankViewModel,
                     onBack = { navController.popBackStack() },
-                    onSuccess = { 
-                        navController.navigate("recharge_processing/$amount/$bankId/${java.net.URLEncoder.encode(name, "UTF-8")}") {
+                    onSuccess = { txId ->
+                        navController.navigate("recharge_processing/$amount/$txId/${java.net.URLEncoder.encode(name, "UTF-8")}") {
                             popUpTo("recharge_plan") { inclusive = false }
                         }
                     }
@@ -302,20 +303,20 @@ fun MainAppLayout() {
             }
             
             composable(
-                "recharge_processing/{amount}/{bankId}/{name}",
+                "recharge_processing/{amount}/{transactionId}/{name}",
                 arguments = listOf(
                     androidx.navigation.navArgument("amount") { type = androidx.navigation.NavType.StringType },
-                    androidx.navigation.navArgument("bankId") { type = androidx.navigation.NavType.StringType },
+                    androidx.navigation.navArgument("transactionId") { type = androidx.navigation.NavType.IntType },
                     androidx.navigation.navArgument("name") { type = androidx.navigation.NavType.StringType }
                 )
             ) { backStackEntry ->
                 val amount = backStackEntry.arguments?.getString("amount") ?: "0"
-                val bankId = backStackEntry.arguments?.getString("bankId") ?: "1"
+                val transactionId = backStackEntry.arguments?.getInt("transactionId") ?: 0
                 val name = backStackEntry.arguments?.getString("name") ?: ""
                 com.example.ui.screens.RechargeProcessingScreen(
                     name = name,
                     amount = amount,
-                    onSuccess = { transactionId ->
+                    onSuccess = { 
                         navController.navigate("recharge_success/$amount/$transactionId/${java.net.URLEncoder.encode(name, "UTF-8")}") {
                             popUpTo("mobile_recharge") { inclusive = false }
                         }
@@ -335,9 +336,8 @@ fun MainAppLayout() {
                 val name = backStackEntry.arguments?.getString("name") ?: ""
                 val transactionId = backStackEntry.arguments?.getInt("transactionId") ?: 0
                 com.example.ui.screens.RechargeSuccessScreen(
-                    amount = amount,
-                    name = name,
                     transactionId = transactionId,
+                    viewModel = prankViewModel,
                     onDone = {
                         navController.navigate("home") {
                             popUpTo("home") { inclusive = true }
@@ -458,6 +458,7 @@ fun MainAppLayout() {
                     onSubmit = {
                         val correctPin = selectedBank?.pin ?: "1234"
                         if (enteredPin == correctPin) {
+                            enteredPin = ""
                             navController.navigate("pay_processing/$amount/$bankId/${java.net.URLEncoder.encode(name, "UTF-8")}") {
                                 popUpTo("pay_amount") { inclusive = true }
                             }
@@ -519,10 +520,14 @@ fun MainAppLayout() {
                 val txId = backStackEntry.arguments?.getInt("transactionId") ?: 0
                 val name = java.net.URLDecoder.decode(backStackEntry.arguments?.getString("name") ?: "Karishna Karishna", "UTF-8")
                 
+                val allTxs by prankViewModel.allTransactions.collectAsState()
+                val currentTx = allTxs.find { it.id == txId }
+                
                 PaymentSuccessScreen(
                     amount = amount,
                     payeeName = name,
                     upiId = prankViewModel.selectedPayeeUpi,
+                    bankName = currentTx?.senderBankName ?: "State Bank of India",
                     onDone = {
                         navController.navigate("home") {
                             popUpTo("home") { inclusive = true }
@@ -649,5 +654,6 @@ fun MainAppLayout() {
                 )
             }
         }
+        }
     }
-}
+

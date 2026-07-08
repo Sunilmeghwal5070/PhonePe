@@ -162,6 +162,11 @@ fun ReceiptScreen(
         context.startActivity(Intent.createChooser(intent, "Share Receipt Via"))
     }
 
+    if (paymentState == PaymentState.RECEIPT_DETAILS && currentTx.type == "RECHARGE") {
+        RechargeSuccessScreen(transactionId = transactionId, viewModel = viewModel, onDone = onDone)
+        return
+    }
+
     when (paymentState) {
         PaymentState.PROCESSING -> {
             ProcessingScreen(
@@ -386,11 +391,27 @@ fun ReceiptScreen(
                         Text("Powered by", fontSize = 12.sp, color = Color.Gray)
                         Spacer(modifier = Modifier.height(4.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("UPI", fontWeight = FontWeight.Bold, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, fontSize = 18.sp, color = Color(0xFF666666))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("|", color = Color(0xFF666666))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("ICICI Bank", fontWeight = FontWeight.Bold, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, fontSize = 16.sp, color = Color(0xFFB31217))
+                            coil.compose.AsyncImage(
+                            model = coil.request.ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
+                                .data("https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/1024px-UPI-Logo-vector.svg.png")
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "UPI",
+                            modifier = Modifier.height(20.dp),
+                            contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("|", color = Color(0xFF666666))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        coil.compose.AsyncImage(
+                            model = coil.request.ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
+                                .data("https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/ICICI_Bank_Logo.svg/512px-ICICI_Bank_Logo.svg.png")
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "ICICI Bank",
+                            modifier = Modifier.height(20.dp),
+                            contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                        )
                         }
                     }
                     

@@ -117,20 +117,8 @@ fun AccountDetailsScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        // Union Bank Logo
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .border(1.dp, Color(0xFFEEEEEE), RoundedCornerShape(8.dp)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            coil.compose.AsyncImage(
-                                model = getBankLogoUrl(account?.bankName ?: "Bank"),
-                                contentDescription = "Union Bank",
-                                modifier = Modifier.size(32.dp).clip(RoundedCornerShape(8.dp)),
-                                contentScale = androidx.compose.ui.layout.ContentScale.Fit
-                            )
-                        }
+                        // Bank Logo
+                        com.example.ui.components.BankLogo(bankName = account?.bankName ?: "Bank", size = 40.dp)
                         
                         Spacer(modifier = Modifier.width(16.dp))
                         
@@ -338,7 +326,7 @@ fun AccountDetailsScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { }
+                        .clickable { viewModel.deleteBankAccount(accountId); onBack() }
                         .padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -355,25 +343,16 @@ fun AccountDetailsScreen(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("POWERED BY", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("UPI", fontSize = 24.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
-                        Canvas(modifier = Modifier.size(24.dp)) {
-                            val path = Path().apply {
-                                moveTo(size.width * 0.2f, size.height * 0.2f)
-                                lineTo(size.width * 0.8f, size.height * 0.5f)
-                                lineTo(size.width * 0.2f, size.height * 0.8f)
-                                close()
-                            }
-                            drawPath(path, color = Color(0xFF388E3C))
-                            
-                            val path2 = Path().apply {
-                                moveTo(size.width * 0.1f, size.height * 0.1f)
-                                lineTo(size.width * 0.9f, size.height * 0.5f)
-                                lineTo(size.width * 0.1f, size.height * 0.9f)
-                            }
-                            drawPath(path2, color = Color(0xFFF57C00), style = Stroke(width = 3.dp.toPx()))
-                        }
+                        coil.compose.AsyncImage(
+                            model = coil.request.ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
+                                .data("https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/1024px-UPI-Logo-vector.svg.png")
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "UPI",
+                            modifier = Modifier.height(24.dp),
+                            contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                        )
                     }
-                    Text("UNIFIED PAYMENTS INTERFACE", fontSize = 8.sp, color = Color.Gray)
                 }
             }
             

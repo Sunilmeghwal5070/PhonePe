@@ -100,19 +100,7 @@ fun BankAccountsScreen(
                                 .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .border(1.dp, Color(0xFFEEEEEE), RoundedCornerShape(8.dp)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                coil.compose.AsyncImage(
-                                    model = getBankLogoUrl(account.bankName),
-                                    contentDescription = account.bankName,
-                                    modifier = Modifier.size(32.dp).clip(RoundedCornerShape(8.dp)),
-                                    contentScale = androidx.compose.ui.layout.ContentScale.Fit
-                                )
-                            }
+                            com.example.ui.components.BankLogo(bankName = account.bankName, size = 40.dp)
                             
                             Spacer(modifier = Modifier.width(16.dp))
                             
@@ -121,10 +109,10 @@ fun BankAccountsScreen(
                             if (bankAccounts.indexOf(account) == 0) {
                                 Box(
                                     modifier = Modifier
-                                        .background(Color(0xFF388E3C), RoundedCornerShape(12.dp))
-                                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                                        .background(Color(0xFF2E7D32), RoundedCornerShape(10.dp))
+                                        .padding(horizontal = 8.dp, vertical = 2.dp)
                                 ) {
-                                    Text("Primary", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Text("Primary", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
                             

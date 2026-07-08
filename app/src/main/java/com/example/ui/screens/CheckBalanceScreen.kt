@@ -104,7 +104,7 @@ fun CheckBalanceScreen(
                     bankDesc = selectedAccount?.bankDesc ?: "",
                     onResetPin = { currentState = CheckBalanceState.PIN; enteredPin = "" },
                     onReEnterPin = { currentState = CheckBalanceState.PIN; enteredPin = "" },
-                    onDone = { currentState = CheckBalanceState.LIST }
+                    onDone = { currentState = CheckBalanceState.LIST; enteredPin = "" }
                 )
             }
             CheckBalanceState.SUCCESS -> {
@@ -156,6 +156,42 @@ fun BalanceListScreen(
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
         ) {
+            // Daily Mutual Fund Card
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFF0F0F0))
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("Daily Mutual Fund SIP @ ₹10!", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(16.dp).background(Color.Black, CircleShape).padding(2.dp), tint = Color.White)
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("Invest now", color = Color.Gray, fontSize = 13.sp)
+                    }
+                    // Mutual Fund Jar Icon
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .background(Color(0xFFE3F2FD), RoundedCornerShape(8.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("₹10", color = Color(0xFFE91E63), fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    }
+                }
+            }
+
             bankAccounts.forEach { account ->
                 Row(
                     modifier = Modifier
@@ -169,7 +205,7 @@ fun BalanceListScreen(
                     Spacer(modifier = Modifier.width(16.dp))
                     
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(account.bankName, fontSize = 16.sp, color = Color.Black)
+                        Text(account.accountName, fontSize = 16.sp, color = Color.Black)
                         Text("Bank Account", color = Color.Gray, fontSize = 14.sp)
                     }
                     
@@ -216,6 +252,38 @@ fun BalanceListScreen(
                 
                 Text(
                     text = "Activate",
+                    color = Color(0xFF5f259f),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+            }
+            
+            HorizontalDivider(color = Color(0xFFF5F5F5), thickness = 1.dp, modifier = Modifier.padding(start = 72.dp))
+
+            HorizontalDivider(color = Color(0xFFF5F5F5), thickness = 1.dp, modifier = Modifier.padding(start = 72.dp))
+            // RuPay Credit Card
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { }
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CreditCard,
+                    contentDescription = null,
+                    tint = Color(0xFF1976D2),
+                    modifier = Modifier.size(32.dp).padding(start = 4.dp, end = 4.dp)
+                )
+                
+                Spacer(modifier = Modifier.width(16.dp))
+                
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("RuPay Credit Card", fontSize = 16.sp, color = Color.Black)
+                }
+                
+                Text(
+                    text = "Link Now",
                     color = Color(0xFF5f259f),
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
@@ -302,6 +370,22 @@ fun BalanceListScreen(
                 }
             }
             Spacer(modifier = Modifier.height(24.dp))
+            
+            // Powered by UPI footer
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                coil.compose.AsyncImage(
+                    model = coil.request.ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
+                        .data("https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/1024px-UPI-Logo-vector.svg.png")
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "UPI",
+                    modifier = Modifier.height(24.dp),
+                    contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                )
+            }
         }
     }
 }
@@ -326,8 +410,15 @@ fun PinEntryScreen(bankName: String, actionText: String, pin: String, onPinChang
             }
             Column(horizontalAlignment = Alignment.End) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("UPI", fontWeight = FontWeight.Bold, fontStyle = FontStyle.Italic, fontSize = 24.sp, color = Color(0xFF666666))
-                    Icon(Icons.Default.PlayArrow, contentDescription = null, tint = Color(0xFF168039), modifier = Modifier.size(20.dp))
+                    coil.compose.AsyncImage(
+                        model = coil.request.ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
+                            .data("https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/1024px-UPI-Logo-vector.svg.png")
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "UPI",
+                        modifier = Modifier.height(24.dp),
+                        contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                    )
                 }
                 Text("UNIFIED PAYMENTS INTERFACE", fontSize = 6.sp, color = Color.Gray)
             }
@@ -536,22 +627,10 @@ fun SuccessScreen(accountId: String?, viewModel: PrankViewModel, onBack: () -> U
         Spacer(modifier = Modifier.height(24.dp))
         
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Canvas(modifier = Modifier.size(24.dp)) {
-                val path1 = Path().apply {
-                    moveTo(size.width * 0.2f, size.height * 0.8f)
-                    lineTo(size.width * 0.5f, size.height * 0.2f)
-                    lineTo(size.width * 0.8f, size.height * 0.8f)
-                    close()
-                }
-                drawPath(path1, color = Color(0xFF1976D2), style = Stroke(width = 2.dp.toPx()))
-                
-                val path2 = Path().apply {
-                    moveTo(size.width * 0.2f, size.height * 0.4f)
-                    lineTo(size.width * 0.5f, size.height * 1.0f)
-                    lineTo(size.width * 0.8f, size.height * 0.4f)
-                    close()
-                }
-                drawPath(path2, color = Color(0xFFFFC107), style = Stroke(width = 2.dp.toPx()))
+            if (account != null) {
+                com.example.ui.components.BankLogo(bankName = account.bankName, size = 24.dp)
+            } else {
+                Icon(Icons.Default.AccountBalance, contentDescription = null, tint = Color(0xFF1976D2), modifier = Modifier.size(24.dp))
             }
             Spacer(modifier = Modifier.width(12.dp))
             Text(account?.bankDesc ?: "Bank", fontSize = 18.sp, color = Color.Black)

@@ -10,6 +10,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -17,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -62,6 +65,8 @@ fun HomeScreen(
     
     var showDialogText by remember { mutableStateOf<String?>(null) }
     var showDialogTitle by remember { mutableStateOf<String?>(null) }
+    
+    var showRechargeReminder by remember { mutableStateOf(!viewModel.hasShownRechargeReminder) }
 
     LazyColumn(
         modifier = Modifier
@@ -81,18 +86,20 @@ fun HomeScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .zIndex(1f) // Ensures this Row renders above the grid animation
                         .padding(horizontal = 14.dp, vertical = 10.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(40.dp)
-                            .clickable { onNavigateToProfile() }
+                            .size(52.dp)
+                            .clickable { onNavigateToProfile() },
+                        contentAlignment = Alignment.Center
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(36.dp)
+                                .size(48.dp)
                                 .clip(CircleShape)
                                 .background(Color(0xFFFBC02D)),
                             contentAlignment = Alignment.Center
@@ -101,12 +108,12 @@ fun HomeScreen(
                                 text = if (userProfile.name.isNotBlank()) userProfile.name.first().toString().uppercase() else "Y",
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp
+                                fontSize = 24.sp
                             )
                         }
                         Box(
                             modifier = Modifier
-                                .size(16.dp)
+                                .size(20.dp)
                                 .align(Alignment.BottomEnd)
                                 .clip(CircleShape)
                                 .background(Color.White)
@@ -117,7 +124,7 @@ fun HomeScreen(
                                 imageVector = Icons.Default.QrCode,
                                 contentDescription = null,
                                 tint = Color(0xFF5f259f),
-                                modifier = Modifier.size(10.dp)
+                                modifier = Modifier.size(12.dp)
                             )
                         }
                     }
@@ -397,15 +404,12 @@ fun HomeScreen(
         
         // 3. Money Transfers Grid
         item {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                shape = RoundedCornerShape(12.dp),
-                elevation = CardDefaults.cardElevation(1.dp),
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(12.dp)
+                    .background(Color.White)
+                    .padding(vertical = 16.dp, horizontal = 12.dp)
             ) {
-                Column(modifier = Modifier.padding(14.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -446,70 +450,35 @@ fun HomeScreen(
                         }
                     }
                     
-                    Spacer(modifier = Modifier.height(14.dp))
+                    Spacer(modifier = Modifier.height(18.dp))
                     
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         TransferButton(
-                            icon = Icons.Default.PhoneAndroid,
+                            iconContent = { ToMobileIcon() },
                             label = "To Mobile\nNumber",
                             onClick = onNavigateToContactList
                         )
                         TransferButton(
-                            icon = Icons.Default.AccountBalance,
+                            iconContent = { ToBankIcon() },
                             label = "To Bank &\nSelf A/c",
                             onClick = onCreatePrank
                         )
-                        // PhonePe Wallet with "2% back" badge!
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .width(80.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.TopEnd) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .clip(CircleShape)
-                                        .background(PhonePePurple),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(imageVector = Icons.Default.AccountBalanceWallet, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
-                                }
-                                // Tiny 2% back badge
-                                Box(
-                                    modifier = Modifier
-                                        .offset(x = 4.dp, y = (-4).dp)
-                                        .clip(RoundedCornerShape(4.dp))
-                                        .background(Color(0xFFD32F2F))
-                                        .padding(horizontal = 4.dp, vertical = 1.dp)
-                                ) {
-                                    Text("2% back", color = Color.White, fontSize = 7.sp, fontWeight = FontWeight.Bold)
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                text = "PhonePe\nWallet",
-                                fontSize = 11.sp,
-                                color = PhonePeTextDark,
-                                textAlign = TextAlign.Center,
-                                lineHeight = 13.sp
-                            )
-                        }
-
                         TransferButton(
-                            icon = Icons.Default.AccountBalanceWallet,
+                            iconContent = { PhonePeWalletIcon() },
+                            label = "PhonePe\nWallet",
+                            onClick = {}
+                        )
+                        TransferButton(
+                            iconContent = { CheckBalanceIcon() },
                             label = "Check\nBalance",
-                            onClick = {
-                                onNavigateToCheckBalance()
-                            }
+                            onClick = onNavigateToCheckBalance
                         )
                     }
                 }
             }
-        }
 
         // 4. Two Capsule Ads Side-by-Side
         item {
@@ -1114,42 +1083,164 @@ fun HomeScreen(
             }
         )
     }
+
+    if (showRechargeReminder) {
+        RechargeReminderDialog(
+            phoneNumber = "887596642",
+            onDismiss = {
+                showRechargeReminder = false
+                viewModel.hasShownRechargeReminder = true
+            },
+            onRecharge = {
+                showRechargeReminder = false
+                viewModel.hasShownRechargeReminder = true
+                onNavigateToMobileRecharge()
+            }
+        )
+    }
 }
 
 @Composable
 fun TransferButton(
-    icon: ImageVector,
+    iconContent: @Composable () -> Unit,
     label: String,
     onClick: () -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .width(80.dp)
+            .width(85.dp)
             .clickable { onClick() }
+    ) {
+        iconContent()
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = label,
+            fontSize = 11.5.sp,
+            color = PhonePeTextDark,
+            textAlign = TextAlign.Center,
+            lineHeight = 15.sp,
+            fontWeight = FontWeight.Medium
+        )
+    }
+}
+
+@Composable
+fun ToMobileIcon() {
+    Box(
+        modifier = Modifier.size(60.dp)
     ) {
         Box(
             modifier = Modifier
-                .size(48.dp)
+                .size(56.dp)
+                .clip(CircleShape)
+                .background(PhonePePurple)
+                .align(Alignment.Center),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(26.dp, 36.dp)
+                    .border(2.dp, Color.White, RoundedCornerShape(6.dp))
+                    .clip(RoundedCornerShape(6.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(16.dp).offset(y = (-4).dp)
+                )
+                Icon(
+                    imageVector = Icons.Default.Phone,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(12.dp).offset(y = 6.dp)
+                )
+            }
+        }
+        // Green badge
+        Box(
+            modifier = Modifier
+                .size(14.dp)
+                .align(Alignment.TopEnd)
+                .offset(x = (-2).dp, y = 2.dp)
+                .background(PhonePeSuccessGreen, CircleShape)
+                .border(2.dp, Color.White, CircleShape)
+        )
+    }
+}
+
+@Composable
+fun ToBankIcon() {
+    Box(modifier = Modifier.size(60.dp), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
                 .clip(CircleShape)
                 .background(PhonePePurple),
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = icon,
+                imageVector = Icons.Default.AccountBalance,
                 contentDescription = null,
                 tint = Color.White,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(32.dp)
             )
         }
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = label,
-            fontSize = 11.sp,
-            color = PhonePeTextDark,
-            textAlign = TextAlign.Center,
-            lineHeight = 13.sp
-        )
+    }
+}
+
+@Composable
+fun PhonePeWalletIcon() {
+    Box(modifier = Modifier.size(60.dp)) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(CircleShape)
+                .background(PhonePePurple)
+                .align(Alignment.Center),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.AccountBalanceWallet,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(32.dp).offset(x = (-2).dp, y = 2.dp)
+            )
+            Text("₹", color = PhonePePurple, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.offset(x = 1.dp, y = 2.dp))
+        }
+        // Badge
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .background(Color(0xFFD32F2F), RoundedCornerShape(4.dp))
+                .padding(horizontal = 4.dp, vertical = 2.dp)
+        ) {
+            Text("2% back", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+fun CheckBalanceIcon() {
+    Box(modifier = Modifier.size(60.dp), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(CircleShape)
+                .background(PhonePePurple),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(24.dp, 32.dp)
+                    .background(Color.White, RoundedCornerShape(4.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("₹", color = PhonePePurple, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            }
+        }
     }
 }
 
@@ -1180,16 +1271,6 @@ fun BillButton(
                 modifier = Modifier.size(22.dp)
             )
         }
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = label,
-            fontSize = 11.sp,
-            color = PhonePeTextDark,
-            textAlign = TextAlign.Center,
-            lineHeight = 13.sp
-        )
-    }
-}
 
 @Composable
 fun PrankItemRow(
@@ -1292,5 +1373,7 @@ fun PrankItemRow(
                 }
             }
         }
-    }
-}
+    
+    
+
+}}}}

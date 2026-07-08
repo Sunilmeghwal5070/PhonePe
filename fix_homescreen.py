@@ -1,113 +1,258 @@
-import re
+with open("app/src/main/java/com/example/ui/screens/HomeScreen.kt", "r") as f:
+    lines = f.readlines()
 
-with open('app/src/main/java/com/example/ui/screens/HomeScreen.kt', 'r') as f:
-    content = f.read()
+# find indices
+start_idx = -1
+end_idx = -1
+for i, line in enumerate(lines):
+    if "// 3. Money Transfers Grid" in line:
+        start_idx = i
+    if "// 4. Two Capsule Ads Side-by-Side" in line:
+        end_idx = i
+        break
+    if "// 4. Promo Capsules" in line:
+        end_idx = i
+        break
 
-# Add import
-content = content.replace('import androidx.compose.animation.core.*', 'import androidx.compose.animation.core.*\nimport androidx.compose.animation.animateContentSize\nimport kotlinx.coroutines.delay')
-
-# Change Profile onClick to QR
-content = content.replace('Toast.makeText(context, "Profile Settings", Toast.LENGTH_SHORT).show()', 'onNavigateToQr()')
-
-# Change Header Label from "Your Prank Space" to "Your Space"
-content = content.replace('"Your Prank Space"', '"Your Space"')
-
-# Change Help dialog text
-help_text_old = 'showDialogText = "With the help of this Prank Clone you can play fun pranks on your friends. Just click on \'Money Transfer\' and show them a fake success screen!"'
-help_text_new = 'showDialogText = "Here you can manage your settings. Click on \'Money Transfer\' to proceed!"'
-content = content.replace(help_text_old, help_text_new)
-
-# Change Referral text
-ref_old = 'showDialogText = "Share the link of this prank clone with your friends and get a fictional ₹200! 🤑🔥"'
-ref_new = 'showDialogText = "Share the link of this app with your friends and get ₹200! 🤑🔥"'
-content = content.replace(ref_old, ref_new)
-
-# Change Bank Balance Text
-bb_old = 'showDialogText = "Your actual prank balance is ₹1,45,392.50. You have been declared the richest person in this area! 👑💥"'
-bb_new = 'showDialogText = "Your actual balance is ₹1,45,392.50. Keep it up! 👑💥"'
-content = content.replace(bb_old, bb_new)
-
-# Change Tuition Fee Text
-tf_old = 'Toast.makeText(context, "Tuition fees paid in prank!", Toast.LENGTH_SHORT).show()'
-tf_new = 'Toast.makeText(context, "Tuition fees paid!", Toast.LENGTH_SHORT).show()'
-content = content.replace(tf_old, tf_new)
-
-# Replace Formula Block
-formula_old = '''                    // Formula Block
+if start_idx != -1 and end_idx != -1:
+    new_block = """        // 3. Money Transfers Grid
+        item {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(vertical = 16.dp, horizontal = 12.dp)
+            ) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp)
-                            .border(1.dp, Color(0xFF5f259f).copy(alpha = 0.8f), RoundedCornerShape(12.dp))
-                            .background(Color(0xFF1E033A).copy(alpha = 0.8f))
-                            .padding(horizontal = 14.dp, vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("₹100", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
-                            Text("balance", color = Color.LightGray, fontSize = 11.sp)
-                        }
-
-                        Text("=", color = Color(0xFFCCFF00), fontSize = 28.sp, fontWeight = FontWeight.Bold)
-
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("₹500", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
-                            Text("in buying power", color = Color.LightGray, fontSize = 11.sp)
-                        }
-                    }'''
-
-formula_new = '''                    // Formula Block Animation State
-                    var animationStep by remember { mutableIntStateOf(0) }
-                    LaunchedEffect(Unit) {
-                        while (true) {
-                            animationStep = 0
-                            delay(1500)
-                            animationStep = 1
-                            delay(3000)
+                        Text(
+                            text = "Money Transfers",
+                            fontWeight = FontWeight.Bold,
+                            color = PhonePeTextDark,
+                            fontSize = 14.sp
+                        )
+                        
+                        // Refer -> ₹200 bubble
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0xFFFFF3E0))
+                                .clickable {
+                                    showDialogTitle = "Referral Bonus 💰"
+                                    showDialogText = "Share the link of this app with your friends and get ₹200! 🤑🔥"
+                                }
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MonetizationOn,
+                                contentDescription = null,
+                                tint = Color(0xFFFF9800),
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Refer → ₹200",
+                                color = Color(0xFFE65100),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
-
-                    // Formula Block
+                    
+                    Spacer(modifier = Modifier.height(18.dp))
+                    
                     Row(
-                        modifier = Modifier
-                            .animateContentSize()
-                            .padding(horizontal = 8.dp)
-                            .border(1.dp, Color(0xFF5f259f).copy(alpha = 0.8f), RoundedCornerShape(12.dp))
-                            .background(Color(0xFF1E033A).copy(alpha = 0.8f))
-                            .padding(horizontal = 14.dp, vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("₹100", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
-                            Text("balance", color = Color.LightGray, fontSize = 11.sp)
-                        }
+                        TransferButton(
+                            iconContent = { ToMobileIcon() },
+                            label = "To Mobile\\nNumber",
+                            onClick = onNavigateToContactList
+                        )
+                        TransferButton(
+                            iconContent = { ToBankIcon() },
+                            label = "To Bank &\\nSelf A/c",
+                            onClick = onCreatePrank
+                        )
+                        TransferButton(
+                            iconContent = { PhonePeWalletIcon() },
+                            label = "PhonePe\\nWallet",
+                            onClick = {}
+                        )
+                        TransferButton(
+                            iconContent = { CheckBalanceIcon() },
+                            label = "Check\\nBalance",
+                            onClick = onNavigateToCheckBalance
+                        )
+                    }
+                }
+            }
 
-                        if (animationStep >= 1) {
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Text("=", color = Color(0xFFCCFF00), fontSize = 28.sp, fontWeight = FontWeight.Bold)
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("₹500", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
-                                Text("in buying power", color = Color.LightGray, fontSize = 11.sp)
-                            }
-                        }
-                    }'''
-content = content.replace(formula_old, formula_new)
+"""
+    lines[start_idx:end_idx] = [new_block]
+    print("Replaced Money Transfers block!")
 
-# Remove the recent transaction part entirely
-# We'll use regex to match from "// 9. Recent Pranks List" up to the end before `if (showDialogText != null && showDialogTitle != null) {`
-recent_section_pattern = r'        // 9\. Recent Pranks List.*?Spacer\(modifier = Modifier\.height\(24\.dp\)\)\s*}\s*}\s*'
-content = re.sub(recent_section_pattern, '    }\n\n', content, flags=re.DOTALL)
+start_fn_idx = -1
+end_fn_idx = -1
+for i, line in enumerate(lines):
+    if "fun TransferButton(" in line:
+        start_fn_idx = i - 1  # include @Composable
+    if start_fn_idx != -1 and i > start_fn_idx and line.strip() == "}":
+        end_fn_idx = i + 1
+        break
 
-# Let's fix the extra text issues
-content = content.replace("Recent Prank Transactions", "Recent Transactions")
-content = content.replace("No pranks have been made yet", "No transactions yet")
-content = content.replace("Make a new prank payment to prank your friends!", "Make a new payment")
-content = content.replace("prank balance", "balance")
-content = content.replace("Prank Clone", "App")
-content = content.replace("Had fun! 😂", "Paid successfully! ✅")
+if start_fn_idx != -1 and end_fn_idx != -1:
+    new_fn = """@Composable
+fun TransferButton(
+    iconContent: @Composable () -> Unit,
+    label: String,
+    onClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .width(85.dp)
+            .clickable { onClick() }
+    ) {
+        iconContent()
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = label,
+            fontSize = 11.5.sp,
+            color = PhonePeTextDark,
+            textAlign = TextAlign.Center,
+            lineHeight = 15.sp,
+            fontWeight = FontWeight.Medium
+        )
+    }
+}
 
-with open('app/src/main/java/com/example/ui/screens/HomeScreen.kt', 'w') as f:
-    f.write(content)
+@Composable
+fun ToMobileIcon() {
+    Box(
+        modifier = Modifier.size(60.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(CircleShape)
+                .background(PhonePePurple)
+                .align(Alignment.Center),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(26.dp, 36.dp)
+                    .border(2.dp, Color.White, RoundedCornerShape(6.dp))
+                    .clip(RoundedCornerShape(6.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(16.dp).offset(y = (-4).dp)
+                )
+                Icon(
+                    imageVector = Icons.Default.Phone,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(12.dp).offset(y = 6.dp)
+                )
+            }
+        }
+        // Green badge
+        Box(
+            modifier = Modifier
+                .size(14.dp)
+                .align(Alignment.TopEnd)
+                .offset(x = (-2).dp, y = 2.dp)
+                .background(PhonePeSuccessGreen, CircleShape)
+                .border(2.dp, Color.White, CircleShape)
+        )
+    }
+}
+
+@Composable
+fun ToBankIcon() {
+    Box(modifier = Modifier.size(60.dp), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(CircleShape)
+                .background(PhonePePurple),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.AccountBalance,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(32.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun PhonePeWalletIcon() {
+    Box(modifier = Modifier.size(60.dp)) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(CircleShape)
+                .background(PhonePePurple)
+                .align(Alignment.Center),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.AccountBalanceWallet,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(32.dp).offset(x = (-2).dp, y = 2.dp)
+            )
+            Text("₹", color = PhonePePurple, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.offset(x = 1.dp, y = 2.dp))
+        }
+        // Badge
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .background(Color(0xFFD32F2F), RoundedCornerShape(4.dp))
+                .padding(horizontal = 4.dp, vertical = 2.dp)
+        ) {
+            Text("2% back", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+fun CheckBalanceIcon() {
+    Box(modifier = Modifier.size(60.dp), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(CircleShape)
+                .background(PhonePePurple),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(24.dp, 32.dp)
+                    .background(Color.White, RoundedCornerShape(4.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("₹", color = PhonePePurple, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+"""
+    lines[start_fn_idx:end_fn_idx] = [new_fn]
+    print("Replaced TransferButton function!")
+    
+with open("app/src/main/java/com/example/ui/screens/HomeScreen.kt", "w") as f:
+    f.writelines(lines)
