@@ -19,11 +19,48 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
 
-    - name: Decode Keystore
+    - name: Generate Debug Keystore
       run: |
         if [ -f debug.keystore.base64 ]; then
           base64 -d debug.keystore.base64 > debug.keystore
+        elif [ ! -f debug.keystore ]; then
+          echo "Generating new debug keystore..."
+          keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "C=US, O=Android, CN=Android Debug"
         fi
+
+    - name: Create Dummy google-services.json
+      run: |
+        cat << 'DUMMY' > app/google-services.json
+        {
+          "project_info": {
+            "project_number": "123456789012",
+            "project_id": "dummy-project",
+            "storage_bucket": "dummy-project.appspot.com"
+          },
+          "client": [
+            {
+              "client_info": {
+                "mobilesdk_app_id": "1:123456789012:android:abcdef1234567890",
+                "android_client_info": {
+                  "package_name": "com.yash.phonepe"
+                }
+              },
+              "oauth_client": [],
+              "api_key": [
+                {
+                  "current_key": "dummy-api-key"
+                }
+              ],
+              "services": {
+                "appinvite_service": {
+                  "other_platform_oauth_client": []
+                }
+              }
+            }
+          ],
+          "configuration_version": "1"
+        }
+        DUMMY
 
     - name: Bypass Corrupted Wrapper
       run: |
@@ -37,7 +74,7 @@ jobs:
         wrapper-validation: false
 
     - name: Build Debug APK
-      run: gradle assembleDebug --no-daemon
+      run: gradle assembleDebug -Djava.awt.headless=true --stacktrace
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
