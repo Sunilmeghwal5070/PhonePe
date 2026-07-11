@@ -35,14 +35,16 @@ class PrefsManager(context: Context) {
         }
     }
 
-    fun saveActivation(key: String, expiryTime: Long) {
+    fun saveActivation(key: String, expiryTime: Long, userName: String = "") {
         prefs.edit {
             putString("activation_key", key)
             putLong("activation_expiry", expiryTime)
+            if (userName.isNotEmpty()) putString("activation_user_name", userName)
         }
     }
 
     fun getActivationKey(): String? = prefs.getString("activation_key", null)
+    fun getActivationUserName(): String? = prefs.getString("activation_user_name", null)
     
     fun getActivationExpiry(): Long = prefs.getLong("activation_expiry", 0L)
 

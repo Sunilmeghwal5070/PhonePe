@@ -24,9 +24,28 @@ import com.google.firebase.firestore.FirebaseFirestore
 @Composable
 fun ActivationScreen(prefsManager: PrefsManager, onActivated: () -> Unit) {
     var keyInput by remember { mutableStateOf("") }
+    var userNameInput by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    var freeTrialUrl by remember { mutableStateOf("https://gplinks.com/") }
+
+    LaunchedEffect(Unit) {
+        try {
+            val isFirebaseInitialized = try { com.google.firebase.FirebaseApp.getInstance() != null } catch (e: Exception) { false }
+            if (isFirebaseInitialized) {
+                val db = FirebaseFirestore.getInstance()
+                db.collection("app_settings").document("urls").get()
+                    .addOnSuccessListener { doc ->
+                        if (doc.exists()) {
+                            doc.getString("freeTrialUrl")?.let { url ->
+                                if (url.isNotEmpty()) freeTrialUrl = url
+                            }
+                        }
+                    }
+            }
+        } catch (e: Exception) {}
+    }
 
     Scaffold(
         topBar = {
@@ -54,6 +73,18 @@ fun ActivationScreen(prefsManager: PrefsManager, onActivated: () -> Unit) {
             
             Spacer(modifier = Modifier.height(32.dp))
             
+                        OutlinedTextField(
+                value = userNameInput,
+                onValueChange = { userNameInput = it; errorMessage = "" },
+                label = { Text("Your Name") },
+                placeholder = { Text("Enter your full name") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                enabled = !isLoading
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
             OutlinedTextField(
                 value = keyInput,
                 onValueChange = { keyInput = it; errorMessage = "" },
@@ -73,6 +104,10 @@ fun ActivationScreen(prefsManager: PrefsManager, onActivated: () -> Unit) {
             
             Button(
                 onClick = {
+                    if (userNameInput.isBlank()) {
+                        errorMessage = "Please enter your name"
+                        return@Button
+                    }
                     if (keyInput.isBlank()) {
                         errorMessage = "Please enter a key"
                         return@Button
@@ -88,15 +123,13 @@ fun ActivationScreen(prefsManager: PrefsManager, onActivated: () -> Unit) {
                     if (isFirebaseInitialized) {
                         try {
                             val db = FirebaseFirestore.getInstance()
-                            db.collection("activation_keys").whereEqualTo("key", keyInput).get()
-                                .addOnSuccessListener { documents ->
-                                    if (documents.isEmpty) {
+                            db.collection("activation_keys").document(keyInput).get()
+                                .addOnSuccessListener { doc ->
+                                    if (!doc.exists()) {
                                         errorMessage = "Key not found or invalid."
                                         isLoading = false
                                         return@addOnSuccessListener
                                     }
-                                    
-                                    val doc = documents.first()
                                     val status = doc.getString("status")
                                     
                                     if (status == "UNUSED") {
@@ -112,10 +145,11 @@ fun ActivationScreen(prefsManager: PrefsManager, onActivated: () -> Unit) {
                                             mapOf(
                                                 "status" to "ACTIVE",
                                                 "activatedAt" to System.currentTimeMillis(),
-                                                "expiresAt" to expiresAt
+                                                "expiresAt" to expiresAt,
+                                                "userName" to userNameInput
                                             )
                                         ).addOnSuccessListener {
-                                            prefsManager.saveActivation(keyInput, expiresAt)
+                                            prefsManager.saveActivation(keyInput, expiresAt, userNameInput)
                                             isLoading = false
                                             onActivated()
                                         }.addOnFailureListener {
@@ -148,7 +182,7 @@ fun ActivationScreen(prefsManager: PrefsManager, onActivated: () -> Unit) {
                             } else {
                                 System.currentTimeMillis() + 28L * 24 * 60 * 60 * 1000L
                             }
-                            prefsManager.saveActivation(keyInput, expiryTime)
+                            prefsManager.saveActivation(keyInput, expiryTime, userNameInput)
                             isLoading = false
                             onActivated()
                         } else {
@@ -173,7 +207,7 @@ fun ActivationScreen(prefsManager: PrefsManager, onActivated: () -> Unit) {
             
             Text("Don't have a key?", color = Color.Gray)
             TextButton(onClick = {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://gplinks.com/"))
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(freeTrialUrl))
                 context.startActivity(intent)
             }) {
                 Text("Get Free 24-Hour Trial Key", color = PhonePePurple, fontWeight = FontWeight.Bold)

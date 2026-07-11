@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Free Activation Key</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4 font-sans">
+
+    <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-8 text-center">
+        <div class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i class="fas fa-key text-3xl text-purple-600"></i>
+        </div>
+        
+        <h1 class="text-2xl font-bold text-gray-800 mb-2">Free Trial Key</h1>
+        <p class="text-gray-500 mb-8">Thank you for visiting! Here is your free 24-hour trial activation key.</p>
+        
+        <div id="loading" class="animate-pulse flex flex-col items-center justify-center py-4">
+            <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+            <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+            <p class="text-sm text-gray-400 mt-4">Generating your key...</p>
+        </div>
+
+        <div id="key-container" class="hidden">
+            <div class="bg-gray-50 border-2 border-dashed border-purple-300 rounded-xl p-6 mb-6 relative group">
+                <span id="generated-key" class="text-3xl font-mono font-bold text-gray-800 tracking-wider">Ph-XXXX-FR</span>
+            </div>
+            
+            <button onclick="copyKey()" class="w-full bg-[#5f259f] hover:bg-purple-700 text-white font-bold py-4 px-6 rounded-xl transition duration-200 flex items-center justify-center gap-2 shadow-lg shadow-purple-200">
+                <i class="fas fa-copy"></i>
+                <span id="copy-text">Copy Key</span>
+            </button>
+            
+            <p class="text-xs text-gray-400 mt-6">Valid for 24 hours. A user can use a key only once.</p>
+        </div>
+        
+        <div id="error-container" class="hidden text-red-500 mt-4 p-4 bg-red-50 rounded-lg">
+            <i class="fas fa-exclamation-circle mb-2 text-2xl"></i>
+            <p id="error-message">Error connecting to database. Please try again later.</p>
+        </div>
+    </div>
+
+    <script>
+        // Replace with your Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyAXw6__Llt1JYyPz3qv2hNx3VJ33pjhk64",
+            authDomain: "phonepe-keys.firebaseapp.com",
+            projectId: "phonepe-keys",
+            storageBucket: "phonepe-keys.firebasestorage.app",
+            messagingSenderId: "660537578846",
+            appId: "1:660537578846:web:4d8e4aa8648f2670c46bcf"
+        };
+
+        let db;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            generateFreeKey();
+        } catch(e) {
+            showError(e.message);
+        }
+
+        async function generateFreeKey() {
+            const randomDigits = Math.floor(1000 + Math.random() * 9000);
+            const keyStr = `Ph-${randomDigits}-FR`;
+            
+            const newKey = {
+                key: keyStr,
+                type: 'FREE_24',
+                reference: 'Auto Generated (Shortlink)',
+                status: 'UNUSED',
+                created: new Date().getTime(),
+                activatedAt: null,
+                expiresAt: null
+            };
+            
+            try {
+                await db.collection("activation_keys").doc(keyStr).set(newKey);
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('generated-key').innerText = keyStr;
+                document.getElementById('key-container').classList.remove('hidden');
+            } catch(error) {
+                showError("Failed to generate key. Database permission denied or offline.");
+            }
+        }
+
+        function copyKey() {
+            const keyText = document.getElementById('generated-key').innerText;
+            navigator.clipboard.writeText(keyText).then(() => {
+                const btnText = document.getElementById('copy-text');
+                btnText.innerText = "Copied!";
+                setTimeout(() => {
+                    btnText.innerText = "Copy Key";
+                }, 2000);
+            });
+        }
+        
+        function showError(msg) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('error-message').innerText = msg;
+            document.getElementById('error-container').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

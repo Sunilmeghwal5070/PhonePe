@@ -42,6 +42,7 @@ import com.example.ui.components.BankLogo
 @Composable
 fun ProfileScreen(
     viewModel: PrankViewModel,
+    prefsManager: com.example.ui.PrefsManager,
     onBack: () -> Unit,
     onNavigateToEditDetails: () -> Unit = {},
     onNavigateToAccountDetails: () -> Unit = {}
@@ -333,7 +334,22 @@ fun ProfileScreen(
 
             ProfileMethodItem(icon = Icons.Default.CardGiftcard, title = "Refer and earn ₹200", onClick = {})
             ProfileMethodItem(icon = Icons.AutoMirrored.Filled.HelpOutline, title = "Help and support", onClick = {})
+
             ProfileMethodItem(icon = Icons.Default.Info, title = "About PhonePe", onClick = {})
+            
+            // App License/Key Details
+            val activationKey = prefsManager.getActivationKey() ?: "Unknown"
+            val expiryTime = prefsManager.getActivationExpiry()
+            val formatter = java.text.SimpleDateFormat("dd MMM yyyy, hh:mm a", java.util.Locale.getDefault())
+            val expiryDateStr = if (expiryTime > 0) formatter.format(java.util.Date(expiryTime)) else "N/A"
+            
+            ProfileMethodItem(
+                icon = Icons.Default.VpnKey, 
+                title = "App License Details", 
+                subtitle = "Key: $activationKey\nExpires: $expiryDateStr", 
+                onClick = {}
+            )
+
             
             HorizontalDivider(color = Color(0xFFF0F0F0))
             
