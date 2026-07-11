@@ -335,7 +335,7 @@ fun ProfileScreen(
             ProfileMethodItem(icon = Icons.Default.CardGiftcard, title = "Refer and earn ₹200", onClick = {})
             ProfileMethodItem(icon = Icons.AutoMirrored.Filled.HelpOutline, title = "Help and support", onClick = {})
 
-            ProfileMethodItem(icon = Icons.Default.Info, title = "About PhonePe", onClick = {})
+            ProfileMethodItem(icon = Icons.Default.Info, title = "About PhonePe", subtitle = "Developer by Sunil Meghwal", onClick = {})
             
             // App License/Key Details
             val activationKey = prefsManager.getActivationKey() ?: "Unknown"

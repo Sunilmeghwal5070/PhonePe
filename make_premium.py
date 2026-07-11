@@ -1,4 +1,14 @@
-<!DOCTYPE html>
+import re
+
+with open('/app/applet/admin_panel.html', 'r') as f:
+    content = f.read()
+
+# Extract JavaScript
+script_match = re.search(r'<script>\s*(// Replace with your Firebase config.*?)\s*</script>', content, flags=re.DOTALL)
+js_logic = script_match.group(1) if script_match else ""
+
+# Premium HTML structure
+new_html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -8,28 +18,28 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        body {{ font-family: 'Inter', sans-serif; background-color: #f3f4f6; }}
         
-        .glass-sidebar {
+        .glass-sidebar {{
             background: linear-gradient(135deg, #4c1d95 0%, #3b0764 100%);
             box-shadow: 4px 0 15px rgba(0,0,0,0.1);
-        }
+        }}
         
-        .sidebar-item {
+        .sidebar-item {{
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
-        }
+        }}
         
-        .sidebar-item:hover, .sidebar-item.active {
+        .sidebar-item:hover, .sidebar-item.active {{
             background: rgba(255, 255, 255, 0.15);
             border-radius: 12px;
             margin-left: 0.5rem;
             margin-right: 0.5rem;
             padding-left: 1rem;
-        }
+        }}
         
-        .sidebar-item.active::before {
+        .sidebar-item.active::before {{
             content: '';
             position: absolute;
             left: -0.5rem;
@@ -39,55 +49,55 @@
             height: 20px;
             background: #fff;
             border-radius: 0 4px 4px 0;
-        }
+        }}
         
-        .view-section {
+        .view-section {{
             animation: fadeIn 0.4s ease-out forwards;
             opacity: 0;
-        }
+        }}
         
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeIn {{
+            from {{ opacity: 0; transform: translateY(10px); }}
+            to {{ opacity: 1; transform: translateY(0); }}
+        }}
         
-        .glass-card {
+        .glass-card {{
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
             border-radius: 16px;
             transition: transform 0.2s, box-shadow 0.2s;
-        }
+        }}
         
-        .glass-card:hover {
+        .glass-card:hover {{
             transform: translateY(-2px);
             box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.1);
-        }
+        }}
         
-        .btn-primary {
+        .btn-primary {{
             background: linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%);
             transition: all 0.3s;
-        }
-        .btn-primary:hover {
+        }}
+        .btn-primary:hover {{
             background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(109, 40, 217, 0.3);
-        }
+        }}
 
-        .modal { display: none; }
-        .modal.active { display: flex; animation: fadeInModal 0.3s ease-out; }
+        .modal {{ display: none; }}
+        .modal.active {{ display: flex; animation: fadeInModal 0.3s ease-out; }}
         
-        @keyframes fadeInModal {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+        @keyframes fadeInModal {{
+            from {{ opacity: 0; }}
+            to {{ opacity: 1; }}
+        }}
         
         /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        ::-webkit-scrollbar {{ width: 6px; height: 6px; }}
+        ::-webkit-scrollbar-track {{ background: transparent; }}
+        ::-webkit-scrollbar-thumb {{ background: #cbd5e1; border-radius: 4px; }}
+        ::-webkit-scrollbar-thumb:hover {{ background: #94a3b8; }}
     </style>
 </head>
 <body class="text-gray-800 antialiased h-screen overflow-hidden flex">
@@ -397,378 +407,31 @@
     </div>
 
     <script>
-// Replace with your Firebase config
-        const firebaseConfig = {
-            apiKey: "AIzaSyAXw6__Llt1JYyPz3qv2hNx3VJ33pjhk64",
-            authDomain: "phonepe-keys.firebaseapp.com",
-            projectId: "phonepe-keys",
-            storageBucket: "phonepe-keys.firebasestorage.app",
-            messagingSenderId: "660537578846",
-            appId: "1:660537578846:web:4d8e4aa8648f2670c46bcf",
-            measurementId: "G-HWGB3SBX0H"
-        };
-        
-        let db;
-        try {
-            firebase.initializeApp(firebaseConfig);
-            db = firebase.firestore();
-        } catch(e) {
-            console.error("Firebase init error: ", e);
-        }
-
-        // Data Structure for Keys
-        let keysDB = [];
-        let activityLog = JSON.parse(localStorage.getItem('activity_log')) || [];
-
-        function saveDB() {
-            // Firebase handles live updates, but we update UI
-            updateDashboardStats();
-        }
-        
-        async function fetchKeysFromFirebase() {
-            if (!db) {
-                alert("Please configure Firebase first in admin_panel.html!");
-                keysDB = JSON.parse(localStorage.getItem('activation_keys')) || [];
-                renderTable();
-                return;
-            }
-            db.collection("activation_keys").onSnapshot((snapshot) => {
-                keysDB = [];
-                snapshot.forEach((doc) => {
-                    keysDB.push(doc.data());
-                });
-                renderTable();
-                updateDashboardStats();
-            }, (error) => {
-                console.error("Error fetching keys:", error);
-            });
-        }
-
-        function logActivity(key, action) {
-            activityLog.unshift({ key, action, time: new Date().toLocaleString() });
-            if (activityLog.length > 20) activityLog.pop();
-            localStorage.setItem('activity_log', JSON.stringify(activityLog));
-            renderActivityLog();
-        }
-
-        function generateKeyString(type) {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-            const randomLetters = chars.charAt(Math.floor(Math.random() * 26)) + chars.charAt(Math.floor(Math.random() * 26));
-            const randomDigits = Math.floor(1000 + Math.random() * 9000); // 4 digits
-            
-            // Format: Ph-1299-RK (as requested). If free, append FR
-            if (type.startsWith('FREE')) {
-                return `Ph-${randomDigits}-FR`;
-            }
-            return `Ph-${randomDigits}-${randomLetters}`;
-        }
-
-        async function generateSingleKey() {
-            const type = document.getElementById('single-key-type').value;
-            const ref = document.getElementById('single-key-ref').value || 'Manual';
-            const keyStr = generateKeyString(type);
-            
-            const newKey = {
-                key: keyStr,
-                type: type,
-                reference: ref,
-                status: 'UNUSED',
-                created: new Date().getTime(),
-                activatedAt: null,
-                expiresAt: null
-            };
-            
-            if (db) {
-                await db.collection("activation_keys").doc(keyStr).set(newKey);
-            } else {
-                keysDB.push(newKey);
-                localStorage.setItem('activation_keys', JSON.stringify(keysDB));
-            }
-            
-            logActivity(keyStr, `Generated (${type})`);
-            
-            const resultDiv = document.getElementById('single-key-result');
-            resultDiv.innerText = `Generated Key: ${keyStr}`;
-            resultDiv.classList.remove('hidden');
-        }
-
-        async function generateBulkKeys() {
-            const qty = parseInt(document.getElementById('bulk-quantity').value);
-            const type = document.getElementById('bulk-validity').value;
-            
-            if (qty < 1 || qty > 100) { alert('Please enter quantity between 1 and 100'); return; }
-            
-            let batch = db ? db.batch() : null;
-            let generated = 0;
-            for(let i=0; i<qty; i++) {
-                const keyStr = generateKeyString(type);
-                const newKey = {
-                    key: keyStr,
-                    type: type,
-                    reference: `Bulk Gen #${Date.now().toString().slice(-4)}`,
-                    status: 'UNUSED',
-                    created: new Date().getTime(),
-                    activatedAt: null,
-                    expiresAt: null
-                };
-                
-                if (db && batch) {
-                    const docRef = db.collection("activation_keys").doc(keyStr);
-                    batch.set(docRef, newKey);
-                } else {
-                    keysDB.push(newKey);
-                }
-                generated++;
-            }
-            
-            if (db && batch) {
-                await batch.commit();
-            } else {
-                localStorage.setItem('activation_keys', JSON.stringify(keysDB));
-            }
-            
-            logActivity('MULTIPLE', `Bulk Generated ${qty} keys (${type})`);
-            alert(`Successfully generated ${qty} keys!`);
-            
-            switchTab('manage');
-        }
-
-        async function changeKeyStatus(keyStr, newStatus) {
-            const keyObj = keysDB.find(k => k.key === keyStr);
-            if (keyObj) {
-                let updates = { status: newStatus };
-                
-                // Simulate activation for testing
-                if (newStatus === 'ACTIVE') {
-                    updates.activatedAt = new Date().getTime();
-                    let validityHours = 28 * 24; // Default Premium
-                    if (keyObj.type === 'FREE_24') validityHours = 24;
-                    if (keyObj.type === 'FREE_48') validityHours = 48;
-                    updates.expiresAt = updates.activatedAt + (validityHours * 60 * 60 * 1000);
-                }
-                
-                if (db) {
-                    await db.collection("activation_keys").doc(keyStr).update(updates);
-                } else {
-                    Object.assign(keyObj, updates);
-                    localStorage.setItem('activation_keys', JSON.stringify(keysDB));
-                    renderTable();
-                }
-                
-                logActivity(keyStr, `Status changed to ${newStatus}`);
-            }
-        }
-
-        async function deleteKey(keyStr) {
-            if (confirm(`Are you sure you want to delete ${keyStr}?`)) {
-                if (db) {
-                    await db.collection("activation_keys").doc(keyStr).delete();
-                } else {
-                    keysDB = keysDB.filter(k => k.key !== keyStr);
-                    localStorage.setItem('activation_keys', JSON.stringify(keysDB));
-                    renderTable();
-                }
-                logActivity(keyStr, 'Deleted');
-            }
-        }
-
-        function getStatusBadge(status) {
-            switch(status) {
-                case 'UNUSED': return '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Unused</span>';
-                case 'ACTIVE': return '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>';
-                case 'EXPIRED': return '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Expired</span>';
-                case 'BLOCKED': return '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-800 text-white">Blocked</span>';
-                default: return status;
-            }
-        }
-
-        function renderTable() {
-            const tbody = document.getElementById('keys-table');
-            const search = document.getElementById('search-key').value.toLowerCase();
-            const filter = document.getElementById('filter-status').value;
-            
-            tbody.innerHTML = '';
-            
-            // Sort by created desc
-            const sorted = [...keysDB].sort((a,b) => b.created - a.created);
-            
-            sorted.forEach(k => {
-                if (filter !== 'ALL' && k.status !== filter) return;
-                if (search && !k.key.toLowerCase().includes(search) && !k.reference.toLowerCase().includes(search)) return;
-                
-                const createdStr = new Date(k.created).toLocaleDateString();
-                const expiresStr = k.expiresAt ? new Date(k.expiresAt).toLocaleString() : 'N/A';
-                
-                let actions = '';
-                if (k.status === 'UNUSED') {
-                    actions += `<button onclick="changeKeyStatus('${k.key}', 'ACTIVE')" class="text-green-600 hover:text-green-900 mx-1" title="Simulate Activation"><i class="fas fa-play"></i></button>`;
-                }
-                if (k.status !== 'BLOCKED' && k.status !== 'EXPIRED') {
-                    actions += `<button onclick="changeKeyStatus('${k.key}', 'BLOCKED')" class="text-red-600 hover:text-red-900 mx-1" title="Block Key"><i class="fas fa-ban"></i></button>`;
-                    actions += `<button onclick="changeKeyStatus('${k.key}', 'EXPIRED')" class="text-orange-600 hover:text-orange-900 mx-1" title="Force Expire"><i class="fas fa-hourglass-end"></i></button>`;
-                } else if (k.status === 'BLOCKED') {
-                    actions += `<button onclick="changeKeyStatus('${k.key}', 'UNUSED')" class="text-blue-600 hover:text-blue-900 mx-1" title="Unblock"><i class="fas fa-unlock"></i></button>`;
-                }
-                
-                if (k.appData || k.userName) {
-                    actions += `<button onclick="viewUserDetails('${k.key}')" class="text-purple-600 hover:text-purple-900 mx-1" title="View User Data"><i class="fas fa-user"></i></button>`;
-                }
-                actions += `<button onclick="deleteKey('${k.key}')" class="text-gray-600 hover:text-gray-900 mx-1" title="Delete"><i class="fas fa-trash"></i></button>`;
-
-                
-                
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap font-mono font-bold text-gray-800">${k.key}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-purple-600">${k.userName || '-'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${k.type}<br><span class="text-xs text-gray-400">${k.reference}</span></td>
-                    <td class="px-6 py-4 whitespace-nowrap">${getStatusBadge(k.status)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${createdStr}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${expiresStr}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">${actions}</td>
-                `;
-
-                tbody.appendChild(tr);
-            });
-        }
-
-        function updateDashboardStats() {
-            document.getElementById('stat-total').innerText = keysDB.length;
-            document.getElementById('stat-active').innerText = keysDB.filter(k => k.status === 'ACTIVE').length;
-            document.getElementById('stat-inactive').innerText = keysDB.filter(k => k.status === 'EXPIRED' || k.status === 'BLOCKED').length;
-            document.getElementById('stat-trial').innerText = keysDB.filter(k => k.type.startsWith('FREE')).length;
-        }
-
-        function renderActivityLog() {
-            const tbody = document.getElementById('activity-log');
-            tbody.innerHTML = '';
-            activityLog.slice(0,10).forEach(log => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="px-4 py-2 font-mono text-sm">${log.key}</td>
-                        <td class="px-4 py-2 text-sm text-gray-700">${log.action}</td>
-                        <td class="px-4 py-2 text-xs text-gray-500">${log.time}</td>
-                    </tr>
-                `;
-            });
-        }
-
-
-        function viewUserDetails(keyStr) {
-            const keyObj = keysDB.find(k => k.key === keyStr);
-            if (!keyObj) return;
-
-            let html = `<div class="mb-4"><span class="font-bold">Key:</span> ${keyObj.key}</div>`;
-            html += `<div class="mb-4"><span class="font-bold">Activation Name:</span> ${keyObj.userName || 'N/A'}</div>`;
-            
-            if (keyObj.appData) {
-                const data = keyObj.appData;
-                html += `<div class="mb-4"><span class="font-bold">Last Sync:</span> ${new Date(data.lastSync).toLocaleString()}</div>`;
-                
-                if (data.accounts && data.accounts.length > 0) {
-                    html += `<h4 class="font-bold text-lg mt-4 mb-2 border-b">Bank Accounts</h4>`;
-                    html += `<table class="min-w-full divide-y divide-gray-200 mb-4">
-                        <thead><tr><th class="px-2 py-1 text-left text-xs font-medium text-gray-500">Name</th><th class="px-2 py-1 text-left text-xs font-medium text-gray-500">Bank</th><th class="px-2 py-1 text-right text-xs font-medium text-gray-500">Balance</th></tr></thead>
-                        <tbody>`;
-                    data.accounts.forEach(acc => {
-                        html += `<tr><td class="px-2 py-1">${acc.name}</td><td class="px-2 py-1">${acc.bank}</td><td class="px-2 py-1 text-right">₹${acc.balance.toFixed(2)}</td></tr>`;
-                    });
-                    html += `</tbody></table>`;
-                }
-
-                if (data.recentTransactions && data.recentTransactions.length > 0) {
-                    html += `<h4 class="font-bold text-lg mt-4 mb-2 border-b">Recent Transactions</h4>`;
-                    html += `<table class="min-w-full divide-y divide-gray-200 mb-4">
-                        <thead><tr><th class="px-2 py-1 text-left text-xs font-medium text-gray-500">To</th><th class="px-2 py-1 text-right text-xs font-medium text-gray-500">Amount</th><th class="px-2 py-1 text-right text-xs font-medium text-gray-500">Date</th><th class="px-2 py-1 text-right text-xs font-medium text-gray-500">Status</th></tr></thead>
-                        <tbody>`;
-                    data.recentTransactions.forEach(tx => {
-                        const date = new Date(tx.date).toLocaleDateString();
-                        html += `<tr><td class="px-2 py-1">${tx.receiver}</td><td class="px-2 py-1 text-right">₹${tx.amount.toFixed(2)}</td><td class="px-2 py-1 text-right">${date}</td><td class="px-2 py-1 text-right">${tx.status}</td></tr>`;
-                    });
-                    html += `</tbody></table>`;
-                }
-            } else {
-                html += `<div class="p-4 bg-gray-100 rounded text-gray-500 italic">No app data synced yet.</div>`;
-            }
-
-            document.getElementById('user-details-content').innerHTML = html;
-            document.getElementById('user-details-modal').classList.remove('hidden');
-        }
-
-        function closeUserDetails() {
-            document.getElementById('user-details-modal').classList.add('hidden');
-        }
-
-        function switchTab(tabId) {
-            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
-            
-            document.getElementById(`view-${tabId}`).classList.remove('hidden');
-            document.getElementById(`tab-${tabId}`).classList.add('active');
-            
-            const titles = {
-                'dashboard': 'Dashboard',
-                'generate': 'Generate Keys',
-                'manage': 'Manage Keys',
-                'settings': 'Settings'
-            };
-            document.getElementById('page-title').innerText = titles[tabId];
-            
-            if (tabId === 'manage') renderTable();
-            if (tabId === 'dashboard') {
-                updateDashboardStats();
-                renderActivityLog();
-            }
-        }
-
-
-        // Settings logic
-        async function fetchSettings() {
-            if (db) {
-                try {
-                    const doc = await db.collection("app_settings").doc("urls").get();
-                    if (doc.exists) {
-                        const data = doc.data();
-                        if (data.freeTrialUrl) {
-                            document.getElementById('setting-free-url').value = data.freeTrialUrl;
-                        }
-                    }
-                } catch(e) {
-                    console.error("Error fetching settings:", e);
-                }
-            } else {
-                const url = localStorage.getItem('freeTrialUrl');
-                if (url) document.getElementById('setting-free-url').value = url;
-            }
-        }
-
-        async function saveSettings() {
-            const url = document.getElementById('setting-free-url').value;
-            if (db) {
-                try {
-                    await db.collection("app_settings").doc("urls").set({ freeTrialUrl: url }, { merge: true });
-                    showSettingsSuccess();
-                } catch(e) {
-                    console.error("Error saving settings:", e);
-                    alert("Error saving settings.");
-                }
-            } else {
-                localStorage.setItem('freeTrialUrl', url);
-                showSettingsSuccess();
-            }
-        }
-
-        function showSettingsSuccess() {
-            const res = document.getElementById('settings-result');
-            res.classList.remove('hidden');
-            setTimeout(() => res.classList.add('hidden'), 3000);
-        }
-
-        // Add to initialization
-        // Initialize
-        fetchSettings();
-        fetchKeysFromFirebase();
-        renderActivityLog();
+{js_logic}
     </script>
 </body>
 </html>
+"""
+
+# Let's fix the getStatusBadge in JS logic to match the new UI
+js_logic = js_logic.replace(
+    "case 'UNUSED': return '<span class=\"px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800\">Unused</span>';",
+    "case 'UNUSED': return '<span class=\"px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-gray-100 text-gray-600 shadow-sm border border-gray-200\">Unused</span>';"
+)
+js_logic = js_logic.replace(
+    "case 'ACTIVE': return '<span class=\"px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800\">Active</span>';",
+    "case 'ACTIVE': return '<span class=\"px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-green-100 text-green-700 shadow-sm border border-green-200\">Active</span>';"
+)
+js_logic = js_logic.replace(
+    "case 'EXPIRED': return '<span class=\"px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800\">Expired</span>';",
+    "case 'EXPIRED': return '<span class=\"px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-orange-100 text-orange-700 shadow-sm border border-orange-200\">Expired</span>';"
+)
+js_logic = js_logic.replace(
+    "case 'BLOCKED': return '<span class=\"px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-800 text-white\">Blocked</span>';",
+    "case 'BLOCKED': return '<span class=\"px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-red-100 text-red-700 shadow-sm border border-red-200\">Blocked</span>';"
+)
+
+new_html = new_html.replace("{js_logic}", js_logic)
+
+with open('/app/applet/admin_panel.html', 'w') as f:
+    f.write(new_html)
