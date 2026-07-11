@@ -401,12 +401,12 @@ fun PinEntryScreen(bankName: String, actionText: String, pin: String, onPinChang
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text(bankName, fontSize = 18.sp, color = Color.Black)
+                Text(bankName, fontSize = 16.sp, color = Color.Black, fontWeight = FontWeight.Bold)
             }
             Column(horizontalAlignment = Alignment.End) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -416,25 +416,28 @@ fun PinEntryScreen(bankName: String, actionText: String, pin: String, onPinChang
                             .crossfade(true)
                             .build(),
                         contentDescription = "UPI",
-                        modifier = Modifier.height(24.dp),
+                        modifier = Modifier.height(20.dp),
                         contentScale = androidx.compose.ui.layout.ContentScale.Fit
                     )
                 }
-                Text("UNIFIED PAYMENTS INTERFACE", fontSize = 6.sp, color = Color.Gray)
+                Spacer(modifier = Modifier.height(2.dp))
+                Text("UNIFIED PAYMENTS INTERFACE", fontSize = 7.sp, color = Color.Gray, letterSpacing = 0.5.sp)
             }
         }
+        
+        HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
         
         // Action Text Bar
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFEEEEEE))
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .background(Color(0xFFF5F5F5))
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(actionText, fontSize = 16.sp, color = Color.Gray)
-            Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = Color.Black)
+            Text(actionText, fontSize = 14.sp, color = Color.DarkGray, fontWeight = FontWeight.Medium)
+            Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = Color.Gray)
         }
         
         Spacer(modifier = Modifier.height(24.dp))
@@ -464,9 +467,9 @@ fun PinEntryScreen(bankName: String, actionText: String, pin: String, onPinChang
                     contentAlignment = Alignment.Center
                 ) {
                     if (i < pin.length) {
-                        Box(modifier = Modifier.size(12.dp).background(Color.Black, CircleShape))
+                        Box(modifier = Modifier.size(14.dp).background(Color.Black, CircleShape))
                     } else {
-                        HorizontalDivider(modifier = Modifier.width(24.dp), thickness = 1.dp, color = Color.Black)
+                        HorizontalDivider(modifier = Modifier.width(20.dp), thickness = 2.dp, color = Color.Black)
                     }
                 }
             }
@@ -476,17 +479,17 @@ fun PinEntryScreen(bankName: String, actionText: String, pin: String, onPinChang
         
         Text(
             text = "UPI PIN will keep your account secure from\nunauthorized access. Do not share this PIN\nwith anyone.",
-            fontSize = 13.sp,
-            color = Color.Gray,
+            fontSize = 12.sp,
+            color = Color(0xFF757575),
             textAlign = TextAlign.Center,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.Medium,
             modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp)
         )
         
         Spacer(modifier = Modifier.height(32.dp))
         
         // Keypad
-        Box(modifier = Modifier.fillMaxWidth().background(Color(0xFFF2F2F2))) {
+        Box(modifier = Modifier.fillMaxWidth().background(Color(0xFFF8F9FA))) {
             Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
                 val buttonModifier = Modifier.weight(1f).height(64.dp)
                 
@@ -543,7 +546,7 @@ fun KeypadButton(number: String, modifier: Modifier, onClick: () -> Unit) {
         modifier = modifier.clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = number, fontSize = 32.sp, fontWeight = FontWeight.ExtraBold, color = Color(0xFF071252))
+        Text(text = number, fontSize = 28.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF1E2640))
     }
 }
 
@@ -601,120 +604,133 @@ fun SuccessScreen(accountId: String?, viewModel: PrankViewModel, onBack: () -> U
     androidx.activity.compose.BackHandler { onBack() }
     
     Column(
-        modifier = Modifier.fillMaxSize().background(Color.White),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = Modifier.fillMaxSize().background(Color(0xFFF9F9F9))
     ) {
-        Spacer(modifier = Modifier.height(48.dp))
-        
-        Box(
-            modifier = Modifier.size(120.dp).background(Color(0xFF388E3C), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(Icons.Default.Check, contentDescription = "Success", tint = Color.White, modifier = Modifier.size(80.dp))
-        }
-        
-        Spacer(modifier = Modifier.height(32.dp))
-        
-        Text(
-            text = "Available Balance fetched\nsuccessful",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 24.dp)
-        )
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (account != null) {
-                com.example.ui.components.BankLogo(bankName = account.bankName, size = 24.dp)
-            } else {
-                Icon(Icons.Default.AccountBalance, contentDescription = null, tint = Color(0xFF1976D2), modifier = Modifier.size(24.dp))
-            }
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(account?.bankDesc ?: "Bank", fontSize = 18.sp, color = Color.Black)
-        }
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        Text("Available Balance", fontSize = 14.sp, color = Color.Gray)
-        Spacer(modifier = Modifier.height(8.dp))
-                var isEditing by remember { mutableStateOf(false) }
-        var editedBalance by remember { mutableStateOf(account?.balance?.toString() ?: "1297.0") }
-
-        if (isEditing) {
-            OutlinedTextField(
-                value = editedBalance,
-                onValueChange = { editedBalance = it },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.width(200.dp),
-                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 24.sp, textAlign = TextAlign.Center)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(onClick = { 
-                isEditing = false
-                val newBal = editedBalance.toDoubleOrNull() ?: 1297.0
-                account?.let { viewModel.updateBankAccount(it.copy(balance = newBal)) }
-            }) {
-                Text("Save")
-            }
-        } else {
-            val displayBalance = account?.balance?.let { if (it % 1.0 == 0.0) it.toInt().toString() else it.toString() } ?: "1297"
-            Text(
-                "₹$displayBalance", 
-                fontSize = 42.sp, 
-                color = Color.Black,
-                modifier = Modifier.combinedClickable(
-                    onClick = {},
-                    onLongClick = { isEditing = true }
-                )
-            )
-        }
-        
-        Spacer(modifier = Modifier.height(48.dp))
-        HorizontalDivider(thickness = 1.dp, color = Color(0xFFF0F0F0))
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        Text("EXPLORE WITH CHATGPT", fontSize = 11.sp, color = Color.Gray, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-        Spacer(modifier = Modifier.height(24.dp))
+        // Toolbar
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            modifier = Modifier.fillMaxWidth().background(Color.White).padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            IconColumn(Icons.Default.Lightbulb, "Ask Me\nAnything")
-            IconColumn(Icons.Default.Calculate, "Plan My\nBudget")
-            IconColumn(Icons.Default.Image, "Create Any\nImage")
-            IconColumn(Icons.Default.Settings, "Know Your\nAstrology")
+            IconButton(onClick = onBack, modifier = Modifier.size(24.dp)) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.Black)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Available Balance", fontSize = 18.sp, fontWeight = FontWeight.Medium, color = Color.Black)
+            Spacer(modifier = Modifier.weight(1f))
+            Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = "Help", tint = Color.Black)
+        }
+        
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                modifier = Modifier.size(56.dp).background(Color(0xFF4CAF50), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.Check, contentDescription = "Success", tint = Color.White, modifier = Modifier.size(36.dp))
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Text(
+                text = "Available Balance fetched\nsuccessfully",
+                fontSize = 18.sp,
+                color = Color.Black,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 24.dp)
+            )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                shape = RoundedCornerShape(12.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFEEEEEE)),
+                elevation = CardDefaults.cardElevation(0.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (account != null) {
+                            com.example.ui.components.BankLogo(bankName = account.bankName, size = 32.dp)
+                        } else {
+                            Box(modifier = Modifier.size(32.dp).background(Color.LightGray, CircleShape))
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(account?.bankName ?: "Bank", fontSize = 16.sp, color = Color.Black, fontWeight = FontWeight.Medium)
+                            Text(account?.bankDesc ?: "Savings Account", fontSize = 14.sp, color = Color.Gray)
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Text("Available Balance", fontSize = 14.sp, color = Color.Gray)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    
+                    var isEditing by remember { mutableStateOf(false) }
+                    var editedBalance by remember { mutableStateOf(account?.balance?.toString() ?: "1297.0") }
+
+                    if (isEditing) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("₹", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            OutlinedTextField(
+                                value = editedBalance,
+                                onValueChange = { editedBalance = it },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier.width(150.dp),
+                                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 24.sp),
+                                singleLine = true
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Button(
+                                onClick = { 
+                                    isEditing = false
+                                    val newBal = editedBalance.toDoubleOrNull() ?: 1297.0
+                                    account?.let { viewModel.updateBankAccount(it.copy(balance = newBal)) }
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5f259f))
+                            ) {
+                                Text("Save")
+                            }
+                        }
+                    } else {
+                        val displayBalance = account?.balance?.let { if (it % 1.0 == 0.0) it.toInt().toString() else it.toString() } ?: "1297"
+                        Row(verticalAlignment = Alignment.Bottom) {
+                            Text("₹", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Black, modifier = Modifier.padding(bottom = 2.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                displayBalance, 
+                                fontSize = 32.sp, 
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black,
+                                modifier = Modifier.combinedClickable(
+                                    onClick = {},
+                                    onLongClick = { isEditing = true }
+                                )
+                            )
+                        }
+                    }
+                }
+            }
         }
         
         Spacer(modifier = Modifier.weight(1f))
         
-        Card(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E073D)),
-            shape = RoundedCornerShape(12.dp)
+        // Done Button
+        Button(
+            onClick = onBack,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .height(48.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5f259f)),
+            shape = RoundedCornerShape(24.dp)
         ) {
-            Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
-                Text("Personal Loan from", color = Color(0xFFD8B4E2), fontSize = 14.sp, modifier = Modifier.align(Alignment.CenterHorizontally))
-                Spacer(modifier = Modifier.height(4.dp))
-                Text("₹6K to ₹10L", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.CenterHorizontally))
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.Timer, contentDescription = null, tint = Color(0xFF9FA8DA), modifier = Modifier.size(48.dp))
-                        Text("10 MINS", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.BottomCenter).offset(y = 12.dp))
-                    }
-                    
-                    Icon(Icons.Default.LocalMall, contentDescription = null, tint = Color(0xFF90CAF9), modifier = Modifier.size(64.dp))
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-            }
+            Text("DONE", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
         }
     }
 }

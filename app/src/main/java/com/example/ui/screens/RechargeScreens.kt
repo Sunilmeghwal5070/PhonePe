@@ -262,13 +262,23 @@ data class RechargePlan(
     val category: String
 )
 
-val dummyPlans = listOf(
-    RechargePlan("29", "2 Days", "2 GB", "Data Pack", "Data Packs"),
-    RechargePlan("349", "28 Days", "Unlimited 5G + 2GB/day", "Jio Special benefits: True 5G Unlimited Plan + JioHotstar Mobile + Pro Google...", "Popular"),
-    RechargePlan("200", "28 Days", "Unlimited 5G + 30 GB", "Mega OTT Pass- 15 Premium OTT apps", "Popular"),
-    RechargePlan("899", "90 Days", "Unlimited 5G + 2GB/day", "Jio Special benefits...", "True 5G Unlimited"),
-    RechargePlan("3599", "365 Days", "Unlimited 5G + 2.5GB/day", "Annual Plan with Jio Special benefits...", "True 5G Unlimited"),
-    RechargePlan("399", "28 Days", "Unlimited 5G + 2.5GB/Day", "Gaming+JioHotstar+Hollywood", "Popular")
+val jioAirtelPlans = listOf(
+    RechargePlan("299", "28 Days", "1.5 GB/Day", "Unlimited Calls + 100 SMS/day", "Popular"),
+    RechargePlan("479", "56 Days", "1.5 GB/Day", "Unlimited Calls + 100 SMS/day", "Popular"),
+    RechargePlan("719", "84 Days", "1.5 GB/Day", "Unlimited Calls + 100 SMS/day", "Popular"),
+    RechargePlan("29", "1 Day", "2 GB", "Data Add-on", "Data Packs"),
+    RechargePlan("349", "28 Days", "2.5 GB/Day", "True 5G Unlimited", "True 5G Unlimited"),
+    RechargePlan("899", "90 Days", "2.5 GB/Day", "True 5G Unlimited", "True 5G Unlimited"),
+    RechargePlan("3599", "365 Days", "2.5 GB/Day", "True 5G Unlimited", "True 5G Unlimited")
+)
+
+val viPlans = listOf(
+    RechargePlan("299", "28 Days", "1.5 GB/Day", "Binge All Night + Weekend Data Rollover", "Popular"),
+    RechargePlan("479", "56 Days", "1.5 GB/Day", "Binge All Night + Weekend Data Rollover", "Popular"),
+    RechargePlan("719", "84 Days", "1.5 GB/Day", "Binge All Night + Weekend Data Rollover", "Popular"),
+    RechargePlan("26", "1 Day", "1.5 GB", "Data Add-on", "Data Packs"),
+    RechargePlan("449", "28 Days", "3 GB/Day", "Binge All Night + Weekend Data Rollover", "Hero Unlimited"),
+    RechargePlan("901", "84 Days", "3 GB/Day", "Disney+ Hotstar + Binge All Night", "Hero Unlimited")
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -281,11 +291,24 @@ fun RechargePlanScreen(
     onProceedToPay: (String) -> Unit
 ) {
     var selectedTab by remember { mutableStateOf(0) }
-    val tabs = listOf("Popular", "True 5G Unlimited", "Data Packs")
+    var operator by remember { mutableStateOf("Jio") }
+    
+    val tabs = if (operator == "Vi") {
+        listOf("Popular", "Hero Unlimited", "Data Packs")
+    } else {
+        listOf("Popular", "True 5G Unlimited", "Data Packs")
+    }
+    
     var selectedPlan by remember { mutableStateOf<RechargePlan?>(null) }
     
+    // Ensure selectedTab is within bounds when tabs change
+    if (selectedTab >= tabs.size) {
+        selectedTab = 0
+    }
+    
     val currentCategory = tabs[selectedTab]
-    val filteredPlans = dummyPlans.filter { it.category == currentCategory }
+    val activePlans = if (operator == "Vi") viPlans else jioAirtelPlans
+    val filteredPlans = activePlans.filter { it.category == currentCategory }
 
     Scaffold(
         topBar = {
@@ -322,18 +345,30 @@ fun RechargePlanScreen(
                 Box(
                     modifier = Modifier
                         .size(40.dp)
-                        .background(Color(0xFF1976D2), CircleShape),
+                        .background(if (operator == "Vi") Color.Red else if (operator == "Airtel") Color(0xFFD32F2F) else Color(0xFF1976D2), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Jio", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text(operator, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
                     Text("$name • $number", fontSize = 16.sp, fontWeight = FontWeight.Medium)
-                    Row {
-                        Text("Jio Prepaid • Rajasthan", fontSize = 14.sp, color = Color.Gray)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("$operator Prepaid • Rajasthan", fontSize = 14.sp, color = Color.Gray)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Change", fontSize = 14.sp, color = Color(0xFF5f259f), fontWeight = FontWeight.Bold)
+                        Text(
+                            "Change", 
+                            fontSize = 14.sp, 
+                            color = Color(0xFF5f259f), 
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.clickable {
+                                operator = when (operator) {
+                                    "Jio" -> "Airtel"
+                                    "Airtel" -> "Vi"
+                                    else -> "Jio"
+                                }
+                            }.padding(4.dp)
+                        )
                     }
                 }
             }

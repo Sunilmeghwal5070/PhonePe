@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Admin Panel - Activation Keys</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar-item { transition: all 0.2s; }
+        .sidebar-item:hover, .sidebar-item.active { background-color: rgba(255,255,255,0.1); border-left: 4px solid #fff; }
+        .modal { display: none; }
+        .modal.active { display: flex; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div class="w-64 bg-[#5f259f] text-white flex flex-col shadow-lg">
+            <div class="p-6 text-center border-b border-white/20">
+                <h1 class="text-2xl font-bold tracking-wider">ADMIN PANEL</h1>
+                <p class="text-xs text-white/70 mt-1">App Control Center</p>
+            </div>
+            <div class="flex-1 overflow-y-auto py-4">
+                <a href="#" onclick="switchTab('dashboard')" id="tab-dashboard" class="sidebar-item active block py-3 px-6"><i class="fas fa-home w-6"></i> Dashboard</a>
+                <a href="#" onclick="switchTab('generate')" id="tab-generate" class="sidebar-item block py-3 px-6"><i class="fas fa-key w-6"></i> Generate Keys</a>
+                <a href="#" onclick="switchTab('manage')" id="tab-manage" class="sidebar-item block py-3 px-6"><i class="fas fa-list w-6"></i> Manage Keys</a>
+                <a href="#" onclick="switchTab('settings')" id="tab-settings" class="sidebar-item block py-3 px-6"><i class="fas fa-cog w-6"></i> Settings</a>
+            </div>
+            <div class="p-4 border-t border-white/20 text-sm text-center">
+                <p>Version 1.0.0</p>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header class="bg-white shadow-sm z-10 px-6 py-4 flex justify-between items-center">
+                <h2 id="page-title" class="text-xl font-bold text-gray-800">Dashboard</h2>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm font-medium text-gray-600">Admin User</span>
+                    <div class="h-8 w-8 rounded-full bg-[#5f259f] text-white flex items-center justify-center font-bold">A</div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+                
+                <!-- Dashboard View -->
+                <div id="view-dashboard" class="view-section">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                        <div class="bg-white rounded-lg shadow p-6 border-l-4 border-[#5f259f]">
+                            <h3 class="text-gray-500 text-sm font-medium">Total Keys</h3>
+                            <p class="text-3xl font-bold text-gray-800" id="stat-total">0</p>
+                        </div>
+                        <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
+                            <h3 class="text-gray-500 text-sm font-medium">Active Keys</h3>
+                            <p class="text-3xl font-bold text-gray-800" id="stat-active">0</p>
+                        </div>
+                        <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
+                            <h3 class="text-gray-500 text-sm font-medium">Blocked/Expired</h3>
+                            <p class="text-3xl font-bold text-gray-800" id="stat-inactive">0</p>
+                        </div>
+                        <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
+                            <h3 class="text-gray-500 text-sm font-medium">Free Trials</h3>
+                            <p class="text-3xl font-bold text-gray-800" id="stat-trial">0</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Recent Activity</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead>
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Key</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="activity-log" class="divide-y divide-gray-200">
+                                    <!-- Logs -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Generate Keys View -->
+                <div id="view-generate" class="view-section hidden">
+                    <div class="bg-white rounded-lg shadow p-6 mb-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Generate Single Key</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Key Type</label>
+                                <select id="single-key-type" class="w-full border-gray-300 rounded-md shadow-sm p-2 border focus:border-[#5f259f] focus:ring focus:ring-[#5f259f]/20">
+                                    <option value="PREMIUM">Premium (28 Days)</option>
+                                    <option value="FREE_24">Free Trial (24 Hours)</option>
+                                    <option value="FREE_48">Free Trial (48 Hours)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Custom Reference (Optional)</label>
+                                <input type="text" id="single-key-ref" placeholder="e.g. VIP User" class="w-full border-gray-300 rounded-md shadow-sm p-2 border">
+                            </div>
+                            <div>
+                                <button onclick="generateSingleKey()" class="w-full bg-[#5f259f] text-white font-bold py-2 px-4 rounded-md hover:bg-purple-800 transition">
+                                    Generate Key
+                                </button>
+                            </div>
+                        </div>
+                        <div id="single-key-result" class="mt-4 p-4 bg-green-50 text-green-800 rounded-md border border-green-200 hidden font-mono font-bold text-lg text-center"></div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Bulk Generate (Free Trials / Promotions)</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Quantity (10-50)</label>
+                                <input type="number" id="bulk-quantity" min="1" max="100" value="10" class="w-full border-gray-300 rounded-md shadow-sm p-2 border">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Validity</label>
+                                <select id="bulk-validity" class="w-full border-gray-300 rounded-md shadow-sm p-2 border">
+                                    <option value="FREE_24">24 Hours</option>
+                                    <option value="FREE_48">48 Hours</option>
+                                    <option value="PREMIUM">28 Days (Premium)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <button onclick="generateBulkKeys()" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 transition">
+                                    Generate Bulk Keys
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Manage Keys View -->
+                <div id="view-manage" class="view-section hidden">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold text-gray-800">Key Management</h3>
+                            <div class="flex space-x-2">
+                                <input type="text" id="search-key" placeholder="Search key..." onkeyup="renderTable()" class="border-gray-300 rounded-md shadow-sm p-2 border text-sm">
+                                <select id="filter-status" onchange="renderTable()" class="border-gray-300 rounded-md shadow-sm p-2 border text-sm">
+                                    <option value="ALL">All Status</option>
+                                    <option value="UNUSED">Unused</option>
+                                    <option value="ACTIVE">Active</option>
+                                    <option value="EXPIRED">Expired</option>
+                                    <option value="BLOCKED">Blocked</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Activation Key</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type / Ref</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expires On</th>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="keys-table" class="bg-white divide-y divide-gray-200">
+                                    <!-- Table Rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+        <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script>
+        // Replace with your Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyAXw6__Llt1JYyPz3qv2hNx3VJ33pjhk64",
+            authDomain: "phonepe-keys.firebaseapp.com",
+            projectId: "phonepe-keys",
+            storageBucket: "phonepe-keys.firebasestorage.app",
+            messagingSenderId: "660537578846",
+            appId: "1:660537578846:web:4d8e4aa8648f2670c46bcf",
+            measurementId: "G-HWGB3SBX0H"
+        };
+        
+        let db;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+        } catch(e) {
+            console.error("Firebase init error: ", e);
+        }
+
+        // Data Structure for Keys
+        let keysDB = [];
+        let activityLog = JSON.parse(localStorage.getItem('activity_log')) || [];
+
+        function saveDB() {
+            // Firebase handles live updates, but we update UI
+            updateDashboardStats();
+        }
+        
+        async function fetchKeysFromFirebase() {
+            if (!db) {
+                alert("Please configure Firebase first in admin_panel.html!");
+                keysDB = JSON.parse(localStorage.getItem('activation_keys')) || [];
+                renderTable();
+                return;
+            }
+            db.collection("activation_keys").onSnapshot((snapshot) => {
+                keysDB = [];
+                snapshot.forEach((doc) => {
+                    keysDB.push(doc.data());
+                });
+                renderTable();
+                updateDashboardStats();
+            }, (error) => {
+                console.error("Error fetching keys:", error);
+            });
+        }
+
+        function logActivity(key, action) {
+            activityLog.unshift({ key, action, time: new Date().toLocaleString() });
+            if (activityLog.length > 20) activityLog.pop();
+            localStorage.setItem('activity_log', JSON.stringify(activityLog));
+            renderActivityLog();
+        }
+
+        function generateKeyString(type) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const randomLetters = chars.charAt(Math.floor(Math.random() * 26)) + chars.charAt(Math.floor(Math.random() * 26));
+            const randomDigits = Math.floor(1000 + Math.random() * 9000); // 4 digits
+            
+            // Format: Ph-1299-RK (as requested). If free, append FR
+            if (type.startsWith('FREE')) {
+                return `Ph-${randomDigits}-FR`;
+            }
+            return `Ph-${randomDigits}-${randomLetters}`;
+        }
+
+        async function generateSingleKey() {
+            const type = document.getElementById('single-key-type').value;
+            const ref = document.getElementById('single-key-ref').value || 'Manual';
+            const keyStr = generateKeyString(type);
+            
+            const newKey = {
+                key: keyStr,
+                type: type,
+                reference: ref,
+                status: 'UNUSED',
+                created: new Date().getTime(),
+                activatedAt: null,
+                expiresAt: null
+            };
+            
+            if (db) {
+                await db.collection("activation_keys").doc(keyStr).set(newKey);
+            } else {
+                keysDB.push(newKey);
+                localStorage.setItem('activation_keys', JSON.stringify(keysDB));
+            }
+            
+            logActivity(keyStr, `Generated (${type})`);
+            
+            const resultDiv = document.getElementById('single-key-result');
+            resultDiv.innerText = `Generated Key: ${keyStr}`;
+            resultDiv.classList.remove('hidden');
+        }
+
+        async function generateBulkKeys() {
+            const qty = parseInt(document.getElementById('bulk-quantity').value);
+            const type = document.getElementById('bulk-validity').value;
+            
+            if (qty < 1 || qty > 100) { alert('Please enter quantity between 1 and 100'); return; }
+            
+            let batch = db ? db.batch() : null;
+            let generated = 0;
+            for(let i=0; i<qty; i++) {
+                const keyStr = generateKeyString(type);
+                const newKey = {
+                    key: keyStr,
+                    type: type,
+                    reference: `Bulk Gen #${Date.now().toString().slice(-4)}`,
+                    status: 'UNUSED',
+                    created: new Date().getTime(),
+                    activatedAt: null,
+                    expiresAt: null
+                };
+                
+                if (db && batch) {
+                    const docRef = db.collection("activation_keys").doc(keyStr);
+                    batch.set(docRef, newKey);
+                } else {
+                    keysDB.push(newKey);
+                }
+                generated++;
+            }
+            
+            if (db && batch) {
+                await batch.commit();
+            } else {
+                localStorage.setItem('activation_keys', JSON.stringify(keysDB));
+            }
+            
+            logActivity('MULTIPLE', `Bulk Generated ${qty} keys (${type})`);
+            alert(`Successfully generated ${qty} keys!`);
+            
+            switchTab('manage');
+        }
+
+        async function changeKeyStatus(keyStr, newStatus) {
+            const keyObj = keysDB.find(k => k.key === keyStr);
+            if (keyObj) {
+                let updates = { status: newStatus };
+                
+                // Simulate activation for testing
+                if (newStatus === 'ACTIVE') {
+                    updates.activatedAt = new Date().getTime();
+                    let validityHours = 28 * 24; // Default Premium
+                    if (keyObj.type === 'FREE_24') validityHours = 24;
+                    if (keyObj.type === 'FREE_48') validityHours = 48;
+                    updates.expiresAt = updates.activatedAt + (validityHours * 60 * 60 * 1000);
+                }
+                
+                if (db) {
+                    await db.collection("activation_keys").doc(keyStr).update(updates);
+                } else {
+                    Object.assign(keyObj, updates);
+                    localStorage.setItem('activation_keys', JSON.stringify(keysDB));
+                    renderTable();
+                }
+                
+                logActivity(keyStr, `Status changed to ${newStatus}`);
+            }
+        }
+
+        async function deleteKey(keyStr) {
+            if (confirm(`Are you sure you want to delete ${keyStr}?`)) {
+                if (db) {
+                    await db.collection("activation_keys").doc(keyStr).delete();
+                } else {
+                    keysDB = keysDB.filter(k => k.key !== keyStr);
+                    localStorage.setItem('activation_keys', JSON.stringify(keysDB));
+                    renderTable();
+                }
+                logActivity(keyStr, 'Deleted');
+            }
+        }
+
+        function getStatusBadge(status) {
+            switch(status) {
+                case 'UNUSED': return '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Unused</span>';
+                case 'ACTIVE': return '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>';
+                case 'EXPIRED': return '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Expired</span>';
+                case 'BLOCKED': return '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-800 text-white">Blocked</span>';
+                default: return status;
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('keys-table');
+            const search = document.getElementById('search-key').value.toLowerCase();
+            const filter = document.getElementById('filter-status').value;
+            
+            tbody.innerHTML = '';
+            
+            // Sort by created desc
+            const sorted = [...keysDB].sort((a,b) => b.created - a.created);
+            
+            sorted.forEach(k => {
+                if (filter !== 'ALL' && k.status !== filter) return;
+                if (search && !k.key.toLowerCase().includes(search) && !k.reference.toLowerCase().includes(search)) return;
+                
+                const createdStr = new Date(k.created).toLocaleDateString();
+                const expiresStr = k.expiresAt ? new Date(k.expiresAt).toLocaleString() : 'N/A';
+                
+                let actions = '';
+                if (k.status === 'UNUSED') {
+                    actions += `<button onclick="changeKeyStatus('${k.key}', 'ACTIVE')" class="text-green-600 hover:text-green-900 mx-1" title="Simulate Activation"><i class="fas fa-play"></i></button>`;
+                }
+                if (k.status !== 'BLOCKED' && k.status !== 'EXPIRED') {
+                    actions += `<button onclick="changeKeyStatus('${k.key}', 'BLOCKED')" class="text-red-600 hover:text-red-900 mx-1" title="Block Key"><i class="fas fa-ban"></i></button>`;
+                    actions += `<button onclick="changeKeyStatus('${k.key}', 'EXPIRED')" class="text-orange-600 hover:text-orange-900 mx-1" title="Force Expire"><i class="fas fa-hourglass-end"></i></button>`;
+                } else if (k.status === 'BLOCKED') {
+                    actions += `<button onclick="changeKeyStatus('${k.key}', 'UNUSED')" class="text-blue-600 hover:text-blue-900 mx-1" title="Unblock"><i class="fas fa-unlock"></i></button>`;
+                }
+                actions += `<button onclick="deleteKey('${k.key}')" class="text-gray-600 hover:text-gray-900 mx-1" title="Delete"><i class="fas fa-trash"></i></button>`;
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap font-mono font-bold text-gray-800">${k.key}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${k.type}<br><span class="text-xs text-gray-400">${k.reference}</span></td>
+                    <td class="px-6 py-4 whitespace-nowrap">${getStatusBadge(k.status)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${createdStr}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${expiresStr}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">${actions}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateDashboardStats() {
+            document.getElementById('stat-total').innerText = keysDB.length;
+            document.getElementById('stat-active').innerText = keysDB.filter(k => k.status === 'ACTIVE').length;
+            document.getElementById('stat-inactive').innerText = keysDB.filter(k => k.status === 'EXPIRED' || k.status === 'BLOCKED').length;
+            document.getElementById('stat-trial').innerText = keysDB.filter(k => k.type.startsWith('FREE')).length;
+        }
+
+        function renderActivityLog() {
+            const tbody = document.getElementById('activity-log');
+            tbody.innerHTML = '';
+            activityLog.slice(0,10).forEach(log => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="px-4 py-2 font-mono text-sm">${log.key}</td>
+                        <td class="px-4 py-2 text-sm text-gray-700">${log.action}</td>
+                        <td class="px-4 py-2 text-xs text-gray-500">${log.time}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            
+            const titles = {
+                'dashboard': 'Dashboard',
+                'generate': 'Generate Keys',
+                'manage': 'Manage Keys',
+                'settings': 'Settings'
+            };
+            document.getElementById('page-title').innerText = titles[tabId];
+            
+            if (tabId === 'manage') renderTable();
+            if (tabId === 'dashboard') {
+                updateDashboardStats();
+                renderActivityLog();
+            }
+        }
+
+        // Initialize
+        fetchKeysFromFirebase();
+        renderActivityLog();
+    </script>
+</body>
+</html>

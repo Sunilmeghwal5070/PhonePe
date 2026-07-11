@@ -1,39 +1,73 @@
 package com.example.ui.screens
 
+
 import androidx.compose.foundation.border
+
 import androidx.compose.foundation.clickable
+
 import androidx.compose.animation.AnimatedVisibility
+
 import androidx.compose.animation.AnimatedContent
+
 import androidx.compose.animation.ExperimentalAnimationApi
+
 import androidx.compose.foundation.Canvas
+
 import androidx.compose.foundation.background
+
 import androidx.compose.foundation.layout.*
+
 import androidx.compose.foundation.shape.CircleShape
+
 import androidx.compose.foundation.shape.RoundedCornerShape
+
 import androidx.compose.material.icons.Icons
+
 import androidx.compose.material.icons.filled.Check
+
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+
 import androidx.compose.material3.*
+
 import androidx.compose.runtime.*
+
 import androidx.compose.animation.core.*
+
 import androidx.compose.ui.draw.scale
+
 import androidx.compose.ui.Alignment
+
 import androidx.compose.ui.Modifier
+
 import androidx.compose.ui.graphics.Color
+
 import androidx.compose.ui.text.font.FontWeight
+
 import androidx.compose.ui.unit.dp
+
 import androidx.compose.ui.unit.sp
+
 import java.text.SimpleDateFormat
+
 import java.util.*
+
 import androidx.compose.foundation.rememberScrollState
+
 import androidx.compose.foundation.verticalScroll
+
 import androidx.compose.material.icons.automirrored.filled.*
+
 import androidx.compose.material.icons.filled.*
 
+
 import kotlinx.coroutines.delay
+
 import com.example.ui.PrankViewModel
+
 import androidx.compose.ui.text.style.TextAlign
+
 import android.widget.Toast
+
 import androidx.compose.ui.platform.LocalContext
 
 @Composable

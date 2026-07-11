@@ -56,9 +56,9 @@ fun AccountDetailsScreen(
     var accType by remember { mutableStateOf(account?.type ?: ": Saving Account") }
     var branch by remember { mutableStateOf(account?.branch ?: ": MAIN") }
     var ifsc by remember { mutableStateOf(account?.ifsc ?: ": IFSC") }
-    var balance by remember { mutableStateOf(account?.balance?.let { if (it % 1.0 == 0.0) it.toInt().toString() else it.toString() } ?: "1297") }
     var pin by remember { mutableStateOf(account?.pin ?: "1234") }
     var isEditingPin by remember { mutableStateOf(false) }
+    var upiIds by remember { mutableStateOf(account?.upiIds ?: listOf()) }
 
     Scaffold(
         topBar = {
@@ -79,8 +79,8 @@ fun AccountDetailsScreen(
                                     type = accType,
                                     branch = branch,
                                     ifsc = ifsc,
-                                    balance = balance.toDoubleOrNull() ?: 0.0,
-                                    pin = pin
+                                    pin = pin,
+                                    upiIds = upiIds
                                 ))
                             }
                             onBack()
@@ -143,20 +143,20 @@ fun AccountDetailsScreen(
                     
                     Spacer(modifier = Modifier.height(16.dp))
                     
-                    Row {
-                        Column(modifier = Modifier.width(80.dp)) {
-                            Text("Type", fontSize = 14.sp, color = Color.Gray)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text("Branch", fontSize = 14.sp, color = Color.Gray)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text("IFSC", fontSize = 14.sp, color = Color.Gray)
+                    Column {
+                        Row(verticalAlignment = Alignment.Top, modifier = Modifier.fillMaxWidth()) {
+                            Text("Type", fontSize = 14.sp, color = Color.Gray, modifier = Modifier.width(80.dp))
+                            BasicTextField(value = accType, onValueChange = { accType = it }, textStyle = TextStyle(fontSize = 14.sp, color = Color.Gray), modifier = Modifier.weight(1f), enabled = isEditableState)
                         }
-                        Column {
-                            BasicTextField(value = accType, onValueChange = { accType = it }, textStyle = TextStyle(fontSize = 14.sp, color = Color.Gray), enabled = isEditableState)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            BasicTextField(value = branch, onValueChange = { branch = it }, textStyle = TextStyle(fontSize = 14.sp, color = Color.Gray), enabled = isEditableState)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            BasicTextField(value = ifsc, onValueChange = { ifsc = it }, textStyle = TextStyle(fontSize = 14.sp, color = Color.Gray), enabled = isEditableState)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(verticalAlignment = Alignment.Top, modifier = Modifier.fillMaxWidth()) {
+                            Text("Branch", fontSize = 14.sp, color = Color.Gray, modifier = Modifier.width(80.dp))
+                            BasicTextField(value = branch, onValueChange = { branch = it }, textStyle = TextStyle(fontSize = 14.sp, color = Color.Gray), modifier = Modifier.weight(1f), enabled = isEditableState)
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(verticalAlignment = Alignment.Top, modifier = Modifier.fillMaxWidth()) {
+                            Text("IFSC", fontSize = 14.sp, color = Color.Gray, modifier = Modifier.width(80.dp))
+                            BasicTextField(value = ifsc, onValueChange = { ifsc = it }, textStyle = TextStyle(fontSize = 14.sp, color = Color.Gray), modifier = Modifier.weight(1f), enabled = isEditableState)
                         }
                     }
                 }
@@ -219,8 +219,8 @@ fun AccountDetailsScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    BasicTextField(value = balance, onValueChange = { balance = it }, textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.Black), enabled = isEditableState)
                     Text("CHECK BALANCE", color = Color(0xFF5f259f), fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.clickable { onNavigateToCheckBalance() })
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
                 }
             }
             
@@ -235,7 +235,8 @@ fun AccountDetailsScreen(
                             type = accType,
                             branch = branch,
                             ifsc = ifsc,
-                            balance = balance.toDoubleOrNull() ?: account.balance
+                            pin = pin,
+                            upiIds = upiIds
                         )
                         viewModel.updateBankAccount(updated)
                         onBack()
@@ -288,8 +289,48 @@ fun AccountDetailsScreen(
                     
                     Spacer(modifier = Modifier.height(16.dp))
                     
-                    account?.upiIds?.forEachIndexed { index, upiId ->
-                        UpiIdRow(upiId, isActivate = (index % 2 == 0))
+                    upiIds.forEachIndexed { index, upiId ->
+                        var isEditingUpi by remember { mutableStateOf(false) }
+                        var editedUpi by remember { mutableStateOf(upiId) }
+                        
+                        Column {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                if (isEditingUpi || isEditableState) {
+                                    BasicTextField(
+                                        value = editedUpi,
+                                        onValueChange = { editedUpi = it },
+                                        textStyle = TextStyle(fontSize = 16.sp, color = Color.Black),
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .border(1.dp, Color.LightGray, RoundedCornerShape(4.dp))
+                                            .padding(8.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Icon(Icons.Default.CheckCircle, contentDescription = "Save", tint = Color(0xFF388E3C), modifier = Modifier.clickable {
+                                        val newList = upiIds.toMutableList()
+                                        newList[index] = editedUpi
+                                        upiIds = newList
+                                        isEditingUpi = false
+                                    })
+                                } else {
+                                    Text(upiId, fontSize = 16.sp, color = Color.Black, modifier = Modifier.weight(1f))
+                                    if (index % 2 == 0) {
+                                        Text("ACTIVATE", color = Color(0xFF5f259f), fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.clickable { })
+                                    } else {
+                                        Icon(Icons.Default.DeleteOutline, contentDescription = "Delete", tint = Color.Gray, modifier = Modifier.clickable { })
+                                    }
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Color.Gray, modifier = Modifier.clickable { isEditingUpi = true })
+                                }
+                            }
+                            HorizontalDivider(color = Color(0xFFF0F0F0))
+                        }
                     }
                 }
             }
@@ -361,23 +402,4 @@ fun AccountDetailsScreen(
     }
 }
 
-@Composable
-fun UpiIdRow(id: String, isActivate: Boolean) {
-    Column {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(id, fontSize = 16.sp, color = Color.Black)
-            if (isActivate) {
-                Text("ACTIVATE", color = Color(0xFF5f259f), fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.clickable { })
-            } else {
-                Icon(Icons.Default.DeleteOutline, contentDescription = "Delete", tint = Color.Black, modifier = Modifier.clickable { })
-            }
-        }
-        HorizontalDivider(color = Color(0xFFF0F0F0))
-    }
-}
+

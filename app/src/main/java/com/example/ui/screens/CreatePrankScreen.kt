@@ -35,10 +35,9 @@ fun CreatePrankScreen(
     onNavigateToReceipt: (Int) -> Unit
 ) {
     var receiverName by remember { mutableStateOf("") }
-    var receiverPhone by remember { mutableStateOf("") }
-    var receiverUpiId by remember { mutableStateOf("") }
+    var receiverPhoneOrUpi by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
-    var status by remember { mutableStateOf("SUCCESS") }
+    
     val bankAccounts by viewModel.bankAccounts.collectAsState()
     var selectedBank by remember { mutableStateOf(bankAccounts.firstOrNull()) }
     var senderBankName by remember(selectedBank) { mutableStateOf(selectedBank?.bankName ?: "State Bank of India") }
@@ -50,18 +49,8 @@ fun CreatePrankScreen(
     var enteredPin by remember { mutableStateOf("") }
     val context = LocalContext.current
     
-    // We only use the bankAccounts list for the dropdown now.
-    
-    var customTxId by remember { mutableStateOf(viewModel.generateTransactionId()) }
-    var customUtr by remember { mutableStateOf(viewModel.generateUtr()) }
-    
-    var useCurrentTime by remember { mutableStateOf(true) }
-    var customDateString by remember { mutableStateOf("") }
-
-    val banks = bankAccounts.map { it.bankName }
-    
     var showBankDropdown by remember { mutableStateOf(false) }
-
+    val banks = bankAccounts.map { it.bankName }
 
     if (showWrongPinScreen) {
         WrongPinScreen(
@@ -90,30 +79,18 @@ fun CreatePrankScreen(
                         showWrongPinScreen = true
                         return@PinEntryScreen
                     }
-                    var timestamp = System.currentTimeMillis()
+                    val timestamp = System.currentTimeMillis()
                     
-                    if (!useCurrentTime && customDateString.isNotBlank()) {
-                        try {
-                            val sdf = SimpleDateFormat("dd-MM-yyyy HH:mm", java.util.Locale.getDefault())
-                            val date = sdf.parse(customDateString)
-                            if (date != null) {
-                                timestamp = date.time
-                            }
-                        } catch (e: Exception) {
-                            // Keep current time if parsing fails
-                        }
-                    }
-
                     viewModel.insertTransaction(
                         name = receiverName,
-                        phone = receiverPhone,
-                        upiId = receiverUpiId,
+                        phone = if (receiverPhoneOrUpi.all { it.isDigit() }) receiverPhoneOrUpi else "9876543210",
+                        upiId = if (!receiverPhoneOrUpi.all { it.isDigit() }) receiverPhoneOrUpi else "$receiverPhoneOrUpi@ybl",
                         amount = finalAmount,
-                        status = status,
+                        status = "SUCCESS",
                         bankName = senderBankName,
                         bankLast4 = senderBankLast4,
-                        customTxId = customTxId,
-                        customUtr = customUtr,
+                        customTxId = viewModel.generateTransactionId(),
+                        customUtr = viewModel.generateUtr(),
                         timestamp = timestamp,
                         onSuccess = { insertedId ->
                             enteredPin = ""; onNavigateToReceipt(insertedId)
@@ -129,7 +106,7 @@ fun CreatePrankScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("New Payment", fontWeight = FontWeight.Bold, color = Color.White) },
+                title = { Text("Send Money", fontWeight = FontWeight.Bold, color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -154,7 +131,8 @@ fun CreatePrankScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Payee Info Card
+            
+            // Receiver Info Card
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 shape = RoundedCornerShape(12.dp),
@@ -162,40 +140,21 @@ fun CreatePrankScreen(
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text(
-                        text = "Payee Details",
-                        fontWeight = FontWeight.Bold,
-                        color = PhonePePurple,
-                        fontSize = 16.sp
-                    )
-                    
                     OutlinedTextField(
                         value = receiverName,
                         onValueChange = { receiverName = it },
-                        label = { Text("Full Name") },
-                        leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = PhonePePurple) },
-                        modifier = Modifier.fillMaxWidth().testTag("receiver_name_input"),
+                        label = { Text("Receiver Name (Optional)") },
+                        modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )
                     
                     OutlinedTextField(
-                        value = receiverPhone,
-                        onValueChange = { receiverPhone = it },
-                        label = { Text("Mobile Number") },
-                        leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null, tint = PhonePePurple) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                        modifier = Modifier.fillMaxWidth().testTag("receiver_phone_input"),
-                        singleLine = true
-                    )
-                    
-                    OutlinedTextField(
-                        value = receiverUpiId,
-                        onValueChange = { receiverUpiId = it },
-                        label = { Text("UPI ID (Leave blank to generate)") },
-                        leadingIcon = { Icon(Icons.Default.AlternateEmail, contentDescription = null, tint = PhonePePurple) },
-                        modifier = Modifier.fillMaxWidth().testTag("receiver_upi_input"),
+                        value = receiverPhoneOrUpi,
+                        onValueChange = { receiverPhoneOrUpi = it },
+                        label = { Text("Bank Account Number or UPI ID") },
+                        modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )
                 }
@@ -209,22 +168,15 @@ fun CreatePrankScreen(
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text(
-                        text = "Payment and Bank Info",
-                        fontWeight = FontWeight.Bold,
-                        color = PhonePePurple,
-                        fontSize = 16.sp
-                    )
-                    
                     OutlinedTextField(
                         value = amount,
                         onValueChange = { amount = it },
                         label = { Text("Amount (in ₹)") },
-                        leadingIcon = { Icon(Icons.Default.CurrencyRupee, contentDescription = null, tint = PhonePePurple) },
+                        leadingIcon = { Text("₹", modifier = Modifier.padding(start = 16.dp), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = PhonePePurple) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.fillMaxWidth().testTag("amount_input"),
+                        modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )
 
@@ -234,7 +186,7 @@ fun CreatePrankScreen(
                             value = senderBankName,
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("Debit Bank") },
+                            label = { Text("Debit From") },
                             leadingIcon = { Icon(Icons.Default.AccountBalance, contentDescription = null, tint = PhonePePurple) },
                             trailingIcon = { 
                                 Icon(
@@ -255,122 +207,12 @@ fun CreatePrankScreen(
                                     text = { Text(bank) },
                                     onClick = {
                                         senderBankName = bank
+                                        selectedBank = bankAccounts.find { it.bankName == bank }
                                         showBankDropdown = false
                                     }
                                 )
                             }
                         }
-                    }
-
-                    OutlinedTextField(
-                        value = senderBankLast4,
-                        onValueChange = { senderBankLast4 = it.take(4) },
-                        label = { Text("Bank Account Last 4 Digits") },
-                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = PhonePePurple) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-                }
-            }
-
-            // Advanced Card (Tx ID, UTR, Date)
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                shape = RoundedCornerShape(12.dp),
-                elevation = CardDefaults.cardElevation(2.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text(
-                        text = "Advanced Settings",
-                        fontWeight = FontWeight.Bold,
-                        color = PhonePePurple,
-                        fontSize = 16.sp
-                    )
-                    
-                    OutlinedTextField(
-                        value = customTxId,
-                        onValueChange = { customTxId = it },
-                        label = { Text("Transaction ID") },
-                        trailingIcon = {
-                            IconButton(onClick = { customTxId = viewModel.generateTransactionId() }) {
-                                Icon(Icons.Default.Refresh, contentDescription = "Regenerate")
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-                    
-                    OutlinedTextField(
-                        value = customUtr,
-                        onValueChange = { customUtr = it },
-                        label = { Text("UTR Number (12 digit)") },
-                        trailingIcon = {
-                            IconButton(onClick = { customUtr = viewModel.generateUtr() }) {
-                                Icon(Icons.Default.Refresh, contentDescription = "Regenerate")
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-                    
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = useCurrentTime,
-                            onCheckedChange = { useCurrentTime = it }
-                        )
-                        Text("Use Current Time")
-                    }
-
-                    if (!useCurrentTime) {
-                        OutlinedTextField(
-                            value = customDateString,
-                            onValueChange = { customDateString = it },
-                            label = { Text("Custom Date (Format: dd-MM-yyyy HH:mm)") },
-                            placeholder = { Text("e.g. 06-07-2026 14:30") },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-
-                    // Status selection
-                    Text("Transaction Status:", fontWeight = FontWeight.Medium)
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        FilterChip(
-                            selected = status == "SUCCESS",
-                            onClick = { status = "SUCCESS" },
-                            label = { Text("SUCCESS") },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = PhonePeSuccessGreen.copy(alpha = 0.2f),
-                                selectedLabelColor = PhonePeSuccessGreen
-                            )
-                        )
-                        FilterChip(
-                            selected = status == "PENDING",
-                            onClick = { status = "PENDING" },
-                            label = { Text("PENDING") },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = PhonePePendingOrange.copy(alpha = 0.2f),
-                                selectedLabelColor = PhonePePendingOrange
-                            )
-                        )
-                        FilterChip(
-                            selected = status == "FAILED",
-                            onClick = { status = "FAILED" },
-                            label = { Text("FAILED") },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = PhonePeFailedRed.copy(alpha = 0.2f),
-                                selectedLabelColor = PhonePeFailedRed
-                            )
-                        )
                     }
                 }
             }
@@ -378,21 +220,22 @@ fun CreatePrankScreen(
             // Create Prank Button
             Button(
                 onClick = {
-                    viewModel.selectedPayeeUpi = receiverUpiId
+                    viewModel.selectedPayeeUpi = receiverPhoneOrUpi
                     showPinScreen = true
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp)
-                    .testTag("create_prank_button"),
+                    .padding(top = 16.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = PhonePePurple),
                 shape = RoundedCornerShape(26.dp)
             ) {
                 Text(
-                    text = "PAY",
+                    text = "PROCEED TO PAY",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = Color.White,
+                    letterSpacing = 1.sp
                 )
             }
             

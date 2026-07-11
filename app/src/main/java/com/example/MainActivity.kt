@@ -39,6 +39,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.navArgument
 import com.example.ui.PrankViewModel
 import com.example.ui.PrankViewModelFactory
+import com.example.ui.PrefsManager
 import com.example.ui.screens.*
 import com.example.ui.theme.MyApplicationTheme
 import com.example.ui.theme.PhonePeDarkPurple
@@ -48,6 +49,26 @@ import com.example.ui.theme.PhonePePurple
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        try {
+            if (com.google.firebase.FirebaseApp.getApps(this).isEmpty()) {
+                val apiKey = BuildConfig.FIREBASE_API_KEY
+                val appId = BuildConfig.FIREBASE_APP_ID
+                val projectId = BuildConfig.FIREBASE_PROJECT_ID
+                
+                if (apiKey.isNotEmpty() && appId.isNotEmpty() && projectId.isNotEmpty() && !apiKey.contains("YOUR_API_KEY")) {
+                    val options = com.google.firebase.FirebaseOptions.Builder()
+                        .setApiKey(apiKey)
+                        .setApplicationId(appId)
+                        .setProjectId(projectId)
+                        .build()
+                    com.google.firebase.FirebaseApp.initializeApp(this, options)
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
         enableEdgeToEdge()
         setContent {
             MyApplicationTheme {
@@ -84,10 +105,21 @@ fun MainAppLayout() {
     // Bottom Navigation only visible on Home, Search, QR, Alerts, and History screens
     val showBottomBar = currentRoute in listOf("home", "search", "qr", "alerts", "history")
 
+    val prefsManager = remember { PrefsManager(context) }
+    
     var showSplash by remember { mutableStateOf(true) }
+    var isActivated by remember { mutableStateOf(prefsManager.isActivated()) }
 
     if (showSplash) {
         SplashScreen(onTimeout = { showSplash = false })
+        return
+    }
+
+    if (!isActivated) {
+        ActivationScreen(
+            prefsManager = prefsManager,
+            onActivated = { isActivated = true }
+        )
         return
     }
 

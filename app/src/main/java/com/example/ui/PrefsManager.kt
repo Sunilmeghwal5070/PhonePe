@@ -35,6 +35,22 @@ class PrefsManager(context: Context) {
         }
     }
 
+    fun saveActivation(key: String, expiryTime: Long) {
+        prefs.edit {
+            putString("activation_key", key)
+            putLong("activation_expiry", expiryTime)
+        }
+    }
+
+    fun getActivationKey(): String? = prefs.getString("activation_key", null)
+    
+    fun getActivationExpiry(): Long = prefs.getLong("activation_expiry", 0L)
+
+    fun isActivated(): Boolean {
+        val expiry = getActivationExpiry()
+        return expiry > System.currentTimeMillis()
+    }
+
     private fun defaultAccounts(): List<BankAccount> {
         return listOf(
             BankAccount(
