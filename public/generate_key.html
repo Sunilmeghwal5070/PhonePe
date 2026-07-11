@@ -40,6 +40,12 @@
             <p class="text-xs text-gray-400 mt-6">Valid for 24 hours. A user can use a key only once.</p>
         </div>
         
+
+        <div id="timer-container" class="hidden mt-6 bg-purple-50 p-4 rounded-xl border border-purple-100">
+            <p class="text-sm text-purple-800 font-semibold mb-1">Next free key available in:</p>
+            <div id="countdown" class="text-2xl font-mono font-bold text-purple-600">24:00:00</div>
+        </div>
+        
         <div id="error-container" class="hidden text-red-500 mt-4 p-4 bg-red-50 rounded-lg">
             <i class="fas fa-exclamation-circle mb-2 text-2xl"></i>
             <p id="error-message">Error connecting to database. Please try again later.</p>
@@ -61,9 +67,58 @@
         try {
             firebase.initializeApp(firebaseConfig);
             db = firebase.firestore();
-            generateFreeKey();
+            checkAndGenerateKey();
         } catch(e) {
             showError(e.message);
+        }
+
+        let timerInterval;
+
+        function checkAndGenerateKey() {
+            const lastGenTime = localStorage.getItem('phonepe_free_key_time');
+            const lastGenKey = localStorage.getItem('phonepe_free_key_value');
+            const now = new Date().getTime();
+            const cooldown = 24 * 60 * 60 * 1000;
+
+            if (lastGenTime && lastGenKey && (now - parseInt(lastGenTime)) < cooldown) {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('generated-key').innerText = lastGenKey;
+                document.getElementById('key-container').classList.remove('hidden');
+                document.getElementById('timer-container').classList.remove('hidden');
+                startTimer(parseInt(lastGenTime), cooldown);
+            } else {
+                generateFreeKey();
+            }
+        }
+
+        function startTimer(startTime, cooldown) {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            function updateTimer() {
+                const now = new Date().getTime();
+                const diff = cooldown - (now - startTime);
+                
+                if (diff <= 0) {
+                    clearInterval(timerInterval);
+                    document.getElementById('countdown').innerText = "00:00:00";
+                    localStorage.removeItem('phonepe_free_key_time');
+                    localStorage.removeItem('phonepe_free_key_value');
+                    location.reload();
+                    return;
+                }
+                
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                document.getElementById('countdown').innerText = 
+                    String(hours).padStart(2, '0') + ':' + 
+                    String(minutes).padStart(2, '0') + ':' + 
+                    String(seconds).padStart(2, '0');
+            }
+            
+            updateTimer();
+            timerInterval = setInterval(updateTimer, 1000);
         }
 
         async function generateFreeKey() {
@@ -85,6 +140,12 @@
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('generated-key').innerText = keyStr;
                 document.getElementById('key-container').classList.remove('hidden');
+                
+                const now = new Date().getTime();
+                localStorage.setItem('phonepe_free_key_time', now.toString());
+                localStorage.setItem('phonepe_free_key_value', keyStr);
+                document.getElementById('timer-container').classList.remove('hidden');
+                startTimer(now, 24 * 60 * 60 * 1000);
             } catch(error) {
                 showError("Failed to generate key. Database permission denied or offline.");
             }
