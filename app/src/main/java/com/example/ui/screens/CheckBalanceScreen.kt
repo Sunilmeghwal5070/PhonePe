@@ -609,7 +609,7 @@ fun SuccessScreen(accountId: String?, viewModel: PrankViewModel, onBack: () -> U
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(Color(0xFFF9F9F9))
     ) {
         // Main Content Area
         Column(
@@ -619,25 +619,25 @@ fun SuccessScreen(accountId: String?, viewModel: PrankViewModel, onBack: () -> U
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(72.dp))
             
             // Green Check Circle
             Box(
                 modifier = Modifier
-                    .size(52.dp)
+                    .size(48.dp)
                     .background(Color(0xFF4CAF50), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(Icons.Default.Check, contentDescription = "Success", tint = Color.White, modifier = Modifier.size(32.dp))
             }
             
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             
             // Balance check successful text
             Text(
                 text = "Balance check successful",
-                fontSize = 22.sp,
-                color = Color(0xFF333333),
+                fontSize = 18.sp,
+                color = Color(0xFF444444),
                 fontWeight = FontWeight.SemiBold
             )
             
@@ -650,14 +650,14 @@ fun SuccessScreen(accountId: String?, viewModel: PrankViewModel, onBack: () -> U
                 modifier = Modifier.fillMaxWidth()
             ) {
                 if (account != null) {
-                    com.example.ui.components.BankLogo(bankName = account.bankName, size = 24.dp)
+                    com.example.ui.components.BankLogo(bankName = account.bankName, size = 18.dp)
                 } else {
-                    Box(modifier = Modifier.size(24.dp).background(Color.LightGray, CircleShape))
+                    Box(modifier = Modifier.size(18.dp).background(Color.LightGray, CircleShape))
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = account?.bankDesc ?: "Union Bank Of India - 0365",
-                    fontSize = 16.sp,
+                    fontSize = 15.sp,
                     color = Color(0xFF555555)
                 )
             }
@@ -667,7 +667,7 @@ fun SuccessScreen(accountId: String?, viewModel: PrankViewModel, onBack: () -> U
             // Available Balance Label
             Text(
                 text = "Available Balance",
-                fontSize = 14.sp,
+                fontSize = 13.sp,
                 color = Color.Gray
             )
             
@@ -676,14 +676,14 @@ fun SuccessScreen(accountId: String?, viewModel: PrankViewModel, onBack: () -> U
             // Balance Amount
             if (isEditing) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("₹", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                    Text("₹", fontSize = 36.sp, fontWeight = FontWeight.Normal, color = Color.Black)
                     Spacer(modifier = Modifier.width(4.dp))
                     OutlinedTextField(
                         value = editedBalance,
                         onValueChange = { editedBalance = it },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.width(180.dp),
-                        textStyle = androidx.compose.ui.text.TextStyle(fontSize = 32.sp, fontWeight = FontWeight.Bold),
+                        textStyle = androidx.compose.ui.text.TextStyle(fontSize = 36.sp, fontWeight = FontWeight.Normal),
                         singleLine = true
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -703,8 +703,8 @@ fun SuccessScreen(accountId: String?, viewModel: PrankViewModel, onBack: () -> U
                 Text(
                     text = "₹$displayBalance",
                     fontSize = 42.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF222222),
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xFF111111),
                     modifier = Modifier.combinedClickable(
                         onClick = {},
                         onLongClick = { isEditing = true }
@@ -712,22 +712,22 @@ fun SuccessScreen(accountId: String?, viewModel: PrankViewModel, onBack: () -> U
                 )
             }
             
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(64.dp))
             
             // BRAND IN FOCUS divider
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFEEEEEE))
+                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE0E0E0))
                 Text(
                     text = "BRAND IN FOCUS",
-                    fontSize = 12.sp,
+                    fontSize = 11.sp,
                     color = Color.Gray,
                     letterSpacing = 1.sp,
                     modifier = Modifier.padding(horizontal = 12.dp)
                 )
-                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFEEEEEE))
+                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE0E0E0))
             }
             
             Spacer(modifier = Modifier.height(24.dp))
@@ -737,31 +737,31 @@ fun SuccessScreen(accountId: String?, viewModel: PrankViewModel, onBack: () -> U
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                BrandIcon("Story TV", Color(0xFF8A2BE2))
-                BrandIcon("Best Dramas", Color(0xFF9370DB))
-                BrandIcon("Top Shows", Color(0xFF9370DB))
-                BrandIcon("Hit Movies", Color(0xFF9370DB))
+                BrandIcon("Story TV", Color(0xFF581c4e))
+                BrandIcon("Best\nDramas", Color(0xFF581c4e))
+                BrandIcon("Top Shows", Color(0xFF581c4e))
+                BrandIcon("Hit Movies", Color(0xFF581c4e))
             }
             
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
             
             // Ad Banner
             Card(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9)),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFEEEEEE)),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE5E5E5)),
                 elevation = CardDefaults.cardElevation(0.dp)
             ) {
                 Row(
-                    modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp).fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
-                        modifier = Modifier.size(32.dp).background(Color(0xFFFFE4E1), RoundedCornerShape(8.dp)),
+                        modifier = Modifier.size(36.dp).background(Color(0xFFfce4ec), RoundedCornerShape(8.dp)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("₹10", color = Color(0xFFE91E63), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text("₹10", color = Color(0xFFc2185b), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Text(
@@ -770,6 +770,8 @@ fun SuccessScreen(accountId: String?, viewModel: PrankViewModel, onBack: () -> U
                         color = Color(0xFF333333),
                         fontWeight = FontWeight.Medium
                     )
+                    Spacer(modifier = Modifier.weight(1f))
+                    Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(20.dp))
                 }
             }
             
@@ -777,31 +779,45 @@ fun SuccessScreen(accountId: String?, viewModel: PrankViewModel, onBack: () -> U
         }
         
         // Done Button at bottom
-        Button(
-            onClick = onBack,
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 24.dp)
-                .height(52.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF5F5F5)),
-            shape = RoundedCornerShape(26.dp),
-            elevation = ButtonDefaults.buttonElevation(0.dp)
+                .padding(horizontal = 24.dp, vertical = 16.dp),
+            contentAlignment = Alignment.CenterEnd
         ) {
-            Text("DONE", color = Color(0xFF5f259f), fontSize = 16.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+            Text(
+                text = "DONE",
+                color = Color(0xFF5f259f),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 0.5.sp,
+                modifier = Modifier.clickable(onClick = onBack).padding(8.dp)
+            )
         }
     }
 }
 
 @Composable
 fun BrandIcon(label: String, color: Color) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(64.dp)) {
         Box(
-            modifier = Modifier.size(56.dp).background(color, RoundedCornerShape(16.dp)),
+            modifier = Modifier.size(52.dp).background(color, RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Default.PlayArrow, contentDescription = label, tint = Color.White, modifier = Modifier.size(28.dp))
+            // Need specific icons for each, using generic ones
+            Icon(
+                imageVector = when {
+                    label.contains("Story") -> Icons.Default.Tv
+                    label.contains("Drama") -> Icons.Default.TheaterComedy
+                    label.contains("Shows") -> Icons.Default.Star
+                    else -> Icons.Default.Movie
+                },
+                contentDescription = label,
+                tint = Color.White,
+                modifier = Modifier.size(24.dp)
+            )
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Text(label, fontSize = 12.sp, color = Color.Gray, textAlign = TextAlign.Center)
+        Text(label, fontSize = 11.sp, color = Color.Gray, textAlign = TextAlign.Center, lineHeight = 14.sp)
     }
 }
