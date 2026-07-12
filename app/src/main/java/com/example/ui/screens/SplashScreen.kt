@@ -1,20 +1,14 @@
 package com.example.ui.screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.GenericShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.ui.platform.LocalContext
-import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -23,12 +17,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.theme.PhonePePurple
 import com.example.ui.theme.PhonePeSuccessGreen
-import com.example.ui.theme.PhonePeTextDark
 import com.example.ui.theme.PhonePeTextMuted
 import kotlinx.coroutines.delay
 
@@ -52,45 +44,36 @@ fun SplashScreen(
             modifier = Modifier.align(Alignment.Center),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            val context = LocalContext.current
-            val resourceId = context.resources.getIdentifier("logo_phonepe", "drawable", context.packageName)
-            if (resourceId != 0) {
-                Image(
-                    painter = androidx.compose.ui.res.painterResource(id = resourceId),
-                    contentDescription = "Logo",
-                    contentScale = androidx.compose.ui.layout.ContentScale.Fit,
-                    modifier = Modifier.size(150.dp).clip(CircleShape)
-                )
-            } else {
-                Image(
-                    painter = androidx.compose.ui.res.painterResource(id = com.example.R.drawable.ic_launcher_foreground),
-                    contentDescription = "Logo",
-                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                    modifier = Modifier
-                        .size(125.dp)
-                        .clip(CircleShape)
-                        .background(PhonePePurple)
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(CircleShape)
+                    .background(PhonePePurple),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "पे",
+                    color = Color.White,
+                    fontSize = 56.sp,
+                    fontWeight = FontWeight.Bold
                 )
             }
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
+            Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = "PhonePe",
                 color = PhonePePurple,
-                fontSize = 50.sp,
+                fontSize = 36.sp,
                 fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.SansSerif,
-                letterSpacing = (-1.5).sp
+                fontFamily = FontFamily.SansSerif
             )
         }
 
-        // Bottom Footer (Security & Compliance Badges)
+        // Bottom Certifications
         Row(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 32.dp)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .padding(bottom = 32.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -108,61 +91,55 @@ fun SplashScreen(
                 Column {
                     Text(
                         text = "PCI DSS",
-                        color = Color(0xFF6B21A8), // Deep purple for PCI label
+                        color = Color(0xFF6B21A8),
                         fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
-                        lineHeight = 12.sp
+                        fontSize = 10.sp,
+                        lineHeight = 11.sp
                     )
                     Text(
                         text = "COMPLIANT",
                         color = PhonePeTextMuted,
-                        fontSize = 8.sp,
+                        fontSize = 7.sp,
                         fontWeight = FontWeight.SemiBold,
-                        lineHeight = 9.sp
+                        lineHeight = 8.sp
                     )
                 }
             }
 
             // 2. 100% SECURED Shield
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(1.dp)
+            Box(
+                modifier = Modifier
+                    .size(40.dp, 44.dp)
+                    .background(PhonePeSuccessGreen, shape = GenericShape { size, _ ->
+                        moveTo(size.width / 2f, 0f)
+                        lineTo(size.width, size.height * 0.25f)
+                        lineTo(size.width, size.height * 0.7f)
+                        quadraticTo(size.width, size.height, size.width / 2f, size.height)
+                        quadraticTo(0f, size.height, 0f, size.height * 0.7f)
+                        lineTo(0f, size.height * 0.25f)
+                        close()
+                    }),
+                contentAlignment = Alignment.Center
             ) {
-                // Custom drawn green shield
-                Box(
-                    modifier = Modifier
-                        .size(34.dp, 38.dp)
-                        .background(PhonePeSuccessGreen, shape = GenericShape { size, _ ->
-                            moveTo(size.width / 2f, 0f)
-                            lineTo(size.width, size.height * 0.25f)
-                            lineTo(size.width, size.height * 0.7f)
-                            quadraticTo(size.width, size.height, size.width / 2f, size.height)
-                            quadraticTo(0f, size.height, 0f, size.height * 0.7f)
-                            lineTo(0f, size.height * 0.25f)
-                            close()
-                        }),
-                    contentAlignment = Alignment.Center
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.offset(y = (-1).dp)
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                        modifier = Modifier.offset(y = (-1).dp)
-                    ) {
-                        Text(
-                            text = "100%",
-                            color = Color.White,
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            lineHeight = 10.sp
-                        )
-                        Text(
-                            text = "SECURED",
-                            color = Color.White,
-                            fontSize = 6.sp,
-                            fontWeight = FontWeight.Bold,
-                            lineHeight = 7.sp
-                        )
-                    }
+                    Text(
+                        text = "100%",
+                        color = Color.White,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        lineHeight = 12.sp
+                    )
+                    Text(
+                        text = "SECURED",
+                        color = Color.White,
+                        fontSize = 7.sp,
+                        fontWeight = FontWeight.Bold,
+                        lineHeight = 8.sp
+                    )
                 }
             }
 
@@ -182,15 +159,15 @@ fun SplashScreen(
                         text = "ISO 27001",
                         color = Color(0xFF6B21A8),
                         fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
-                        lineHeight = 12.sp
+                        fontSize = 10.sp,
+                        lineHeight = 11.sp
                     )
                     Text(
                         text = "CERTIFIED",
                         color = PhonePeTextMuted,
-                        fontSize = 8.sp,
+                        fontSize = 7.sp,
                         fontWeight = FontWeight.SemiBold,
-                        lineHeight = 9.sp
+                        lineHeight = 8.sp
                     )
                 }
             }

@@ -80,44 +80,12 @@ fun QrScreen(onBack: () -> Unit = {}) {
                     .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                // Union Bank logo approximation (red 'u' with blue lines)
-                Canvas(modifier = Modifier.size(24.dp)) {
-                    val redColor = Color(0xFFE53935)
-                    val blueColor = Color(0xFF1E88E5)
-                    
-                    // Draw intertwined U / S shape
-                    drawPath(
-                        path = Path().apply {
-                            moveTo(size.width * 0.2f, size.height * 0.2f)
-                            lineTo(size.width * 0.2f, size.height * 0.6f)
-                            quadraticBezierTo(
-                                size.width * 0.2f, size.height * 0.9f,
-                                size.width * 0.5f, size.height * 0.9f
-                            )
-                            quadraticBezierTo(
-                                size.width * 0.8f, size.height * 0.9f,
-                                size.width * 0.8f, size.height * 0.6f
-                            )
-                            lineTo(size.width * 0.8f, size.height * 0.1f)
-                        },
-                        color = redColor,
-                        style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
-                    )
-                    
-                    drawPath(
-                        path = Path().apply {
-                            moveTo(size.width * 0.8f, size.height * 0.1f)
-                            lineTo(size.width * 0.5f, size.height * 0.1f)
-                            quadraticBezierTo(
-                                size.width * 0.1f, size.height * 0.1f,
-                                size.width * 0.1f, size.height * 0.4f
-                            )
-                            lineTo(size.width * 0.1f, size.height * 0.9f)
-                        },
-                        color = blueColor,
-                        style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
-                    )
-                }
+                coil.compose.AsyncImage(
+                    model = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Union_Bank_of_India_Logo.svg/1024px-Union_Bank_of_India_Logo.svg.png",
+                    contentDescription = "Bank Logo",
+                    modifier = Modifier.fillMaxSize().padding(6.dp),
+                    contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                )
             }
             
             Spacer(modifier = Modifier.height(16.dp))
@@ -292,18 +260,12 @@ fun QrScreen(onBack: () -> Unit = {}) {
                         Text("Supported on all UPI apps", color = Color.Gray, fontSize = 12.sp)
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            val context = LocalContext.current
-                            val ppRes = context.resources.getIdentifier("logo_phonepe", "drawable", context.packageName)
-                            if (ppRes != 0) {
-                                androidx.compose.foundation.Image(
-                                    painter = androidx.compose.ui.res.painterResource(id = ppRes),
-                                    contentDescription = "PhonePe",
-                                    modifier = Modifier.height(16.dp),
-                                    contentScale = androidx.compose.ui.layout.ContentScale.Fit
-                                )
-                            } else {
-                                Text("पे PhonePe", fontWeight = FontWeight.Bold, color = Color.Gray, fontSize = 12.sp)
-                            }
+                            coil.compose.AsyncImage(
+                                model = "https://companieslogo.com/downloads/logos/PhonePe-Logo.png",
+                                contentDescription = "PhonePe",
+                                modifier = Modifier.height(16.dp),
+                                contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                            )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("BHIM", fontWeight = FontWeight.Bold, color = Color.Gray, fontSize = 12.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
                             Spacer(modifier = Modifier.width(8.dp))

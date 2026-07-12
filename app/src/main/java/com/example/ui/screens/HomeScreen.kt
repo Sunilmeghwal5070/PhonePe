@@ -28,6 +28,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.core.*
 import androidx.compose.animation.animateContentSize
 import kotlinx.coroutines.delay
@@ -68,6 +71,18 @@ fun HomeScreen(
     
     var showRechargeReminder by remember { mutableStateOf(!viewModel.hasShownRechargeReminder) }
 
+    var networkStatus by remember { mutableStateOf(0) }
+    
+    LaunchedEffect(Unit) {
+        delay(3000)
+        networkStatus = 1
+        delay(4000)
+        networkStatus = 2
+        delay(4000)
+        networkStatus = 0
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -1098,7 +1113,39 @@ fun HomeScreen(
             }
         )
     }
-}
+
+        
+        // Network Status Banner
+        AnimatedVisibility(
+            visible = networkStatus != 0,
+            enter = slideInVertically(initialOffsetY = { -it }),
+            exit = slideOutVertically(targetOffsetY = { -it }),
+            modifier = Modifier.align(Alignment.TopCenter)
+        ) {
+            val isRed = networkStatus == 1
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(if (isRed) Color(0xFFD32F2F) else Color(0xFF388E3C))
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = if (isRed) Icons.Default.ErrorOutline else Icons.Default.Check,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = if (isRed) "Could not connect to internet" else "We are back...",
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+    }}
 
 @Composable
 fun TransferButton(
@@ -1128,119 +1175,50 @@ fun TransferButton(
 @Composable
 fun ToMobileIcon() {
     Box(
-        modifier = Modifier.size(60.dp)
+        modifier = Modifier.size(56.dp).clip(CircleShape).background(PhonePePurple),
+        contentAlignment = Alignment.Center
     ) {
-        Box(
-            modifier = Modifier
-                .size(56.dp)
-                .clip(CircleShape)
-                .background(PhonePePurple)
-                .align(Alignment.Center),
-            contentAlignment = Alignment.Center
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(26.dp, 36.dp)
-                    .border(2.dp, Color.White, RoundedCornerShape(6.dp))
-                    .clip(RoundedCornerShape(6.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(16.dp).offset(y = (-4).dp)
-                )
-                Icon(
-                    imageVector = Icons.Default.Phone,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(12.dp).offset(y = 6.dp)
-                )
-            }
-        }
-        // Green badge
-        Box(
-            modifier = Modifier
-                .size(14.dp)
-                .align(Alignment.TopEnd)
-                .offset(x = (-2).dp, y = 2.dp)
-                .background(PhonePeSuccessGreen, CircleShape)
-                .border(2.dp, Color.White, CircleShape)
-        )
+        Icon(imageVector = Icons.Default.ContactPhone, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
     }
 }
 
 @Composable
 fun ToBankIcon() {
-    Box(modifier = Modifier.size(60.dp), contentAlignment = Alignment.Center) {
-        Box(
-            modifier = Modifier
-                .size(56.dp)
-                .clip(CircleShape)
-                .background(PhonePePurple),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.AccountBalance,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(32.dp)
-            )
-        }
+    Box(
+        modifier = Modifier.size(56.dp).clip(CircleShape).background(PhonePePurple),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(imageVector = Icons.Default.AccountBalance, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
     }
 }
 
 @Composable
 fun PhonePeWalletIcon() {
-    Box(modifier = Modifier.size(60.dp)) {
+    Box(modifier = Modifier.size(60.dp), contentAlignment = Alignment.TopCenter) {
         Box(
-            modifier = Modifier
-                .size(56.dp)
-                .clip(CircleShape)
-                .background(PhonePePurple)
-                .align(Alignment.Center),
+            modifier = Modifier.size(56.dp).clip(CircleShape).background(PhonePePurple).align(Alignment.BottomCenter),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Default.AccountBalanceWallet,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(32.dp).offset(x = (-2).dp, y = 2.dp)
-            )
-            Text("₹", color = PhonePePurple, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.offset(x = 1.dp, y = 2.dp))
+            Icon(imageVector = Icons.Default.AccountBalanceWallet, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
         }
-        // Badge
         Box(
             modifier = Modifier
-                .align(Alignment.TopCenter)
-                .background(Color(0xFFD32F2F), RoundedCornerShape(4.dp))
+                .background(Color(0xFFE65100), RoundedCornerShape(4.dp))
                 .padding(horizontal = 4.dp, vertical = 2.dp)
         ) {
-            Text("2% back", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+            Text("Cashback", color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
 
 @Composable
 fun CheckBalanceIcon() {
-    Box(modifier = Modifier.size(60.dp), contentAlignment = Alignment.Center) {
-        Box(
-            modifier = Modifier
-                .size(56.dp)
-                .clip(CircleShape)
-                .background(PhonePePurple),
-            contentAlignment = Alignment.Center
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(24.dp, 32.dp)
-                    .background(Color.White, RoundedCornerShape(4.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("₹", color = PhonePePurple, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            }
-        }
+    Box(
+        modifier = Modifier.size(56.dp).clip(CircleShape).background(PhonePePurple),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(imageVector = Icons.Default.AccountBalanceWallet, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
+        // using wallet again, or currency rupee
     }
 }
 
@@ -1271,6 +1249,16 @@ fun BillButton(
                 modifier = Modifier.size(22.dp)
             )
         }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = label,
+            fontSize = 11.5.sp,
+            color = PhonePeTextDark,
+            textAlign = TextAlign.Center,
+            lineHeight = 15.sp,
+            fontWeight = FontWeight.Medium
+        )
+    }
 
 @Composable
 fun PrankItemRow(
@@ -1376,4 +1364,6 @@ fun PrankItemRow(
     
     
 
-}}}}
+}
+}
+}

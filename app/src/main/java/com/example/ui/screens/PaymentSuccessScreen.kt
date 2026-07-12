@@ -44,18 +44,7 @@ fun PaymentSuccessScreen(
     
     val context = LocalContext.current
     LaunchedEffect(Unit) {
-        val resourceId = context.resources.getIdentifier("payment_success", "raw", context.packageName)
-        if (resourceId != 0) {
-            try {
-                val mediaPlayer = MediaPlayer.create(context, resourceId)
-                mediaPlayer.start()
-                mediaPlayer.setOnCompletionListener {
-                    it.release()
-                }
-            } catch (e: Exception) {
-                // Ignore
-            }
-        }
+        playSuccessBeep()
     }
 
     

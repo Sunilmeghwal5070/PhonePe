@@ -1,6 +1,15 @@
 package com.example
 
 import android.app.Application
+
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
+import kotlinx.coroutines.withContext
 import android.os.Bundle
 import android.net.Uri
 import java.net.URLEncoder
@@ -103,7 +112,19 @@ fun MainAppLayout() {
     }
 
     // Bottom Navigation only visible on Home, Search, QR, Alerts, and History screens
+
     val showBottomBar = currentRoute in listOf("home", "search", "qr", "alerts", "history")
+    
+    ShakeEffect {
+        if (currentRoute != "qr") {
+            navController.navigate("qr") {
+                popUpTo("home")
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+    }
+
 
     val prefsManager = remember { PrefsManager(context) }
     
@@ -127,15 +148,26 @@ fun MainAppLayout() {
         }
 
         LaunchedEffect(Unit) {
-            try {
-                val key = prefsManager.getActivationKey()
-                if (key != null && com.google.firebase.FirebaseApp.getApps(context).isNotEmpty()) {
-                    val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
-                    db.collection("activation_keys").document(key).get().addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            val doc = task.result
-                            if (doc != null && doc.exists()) {
-                                val status = doc.getString("status")
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                try {
+                    val key = prefsManager.getActivationKey()
+                    val apiKey = BuildConfig.FIREBASE_API_KEY
+                    val projectId = BuildConfig.FIREBASE_PROJECT_ID
+                    
+                    if (key != null && apiKey.isNotEmpty() && !apiKey.contains("YOUR_API_KEY")) {
+                        val client = okhttp3.OkHttpClient()
+                        val getUrl = "https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents/activation_keys/$key?key=$apiKey"
+                        val request = okhttp3.Request.Builder().url(getUrl).build()
+                        
+                        val response = client.newCall(request).execute()
+                        val responseBody = response.body?.string() ?: ""
+                        
+                        if (response.isSuccessful) {
+                            val json = org.json.JSONObject(responseBody)
+                            val fields = json.optJSONObject("fields")
+                            if (fields != null) {
+                                val statusObj = fields.optJSONObject("status")
+                                val status = statusObj?.optString("stringValue") ?: ""
                                 if (status == "BLOCKED" || status == "EXPIRED") {
                                     prefsManager.saveActivation("", 0L)
                                     isActivated = false
@@ -145,13 +177,11 @@ fun MainAppLayout() {
                                 isActivated = false
                             }
                         }
-                        isVerifying = false
                     }
-                } else {
+                } catch (e: Exception) {
+                } finally {
                     isVerifying = false
                 }
-            } catch (e: Exception) {
-                isVerifying = false
             }
         }
         return
@@ -171,144 +201,144 @@ fun MainAppLayout() {
     val bankAccounts by prankViewModel.bankAccounts.collectAsState()
     val allTransactions by prankViewModel.allTransactions.collectAsState()
     
-    LaunchedEffect(isActivated, bankAccounts, allTransactions) {
-        if (isActivated) {
-            try {
-                val key = prefsManager.getActivationKey()
-                if (key != null && com.google.firebase.FirebaseApp.getApps(context).isNotEmpty()) {
-                    val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
-                    
-                    val recentTx = allTransactions.take(15).map { tx ->
-                        mapOf(
-                            "receiver" to tx.receiverName,
-                            "amount" to tx.amount,
-                            "date" to tx.timestamp,
-                            "status" to tx.status
-                        )
-                    }
-                    
-                    val accs = bankAccounts.map { acc ->
-                        mapOf(
-                            "name" to acc.accountName,
-                            "bank" to acc.bankName,
-                            "balance" to acc.balance
-                        )
-                    }
-
-                    val userData = hashMapOf(
-                        "lastSync" to System.currentTimeMillis(),
-                        "accounts" to accs,
-                        "recentTransactions" to recentTx
-                    )
-                    
-                    db.collection("activation_keys").document(key).update(
-                        mapOf("appData" to userData)
-                    ).addOnFailureListener {}
-                }
-            } catch (e: Exception) {}
-        }
-    }
-
-
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            if (showBottomBar) {
-                Column(modifier = Modifier.fillMaxWidth().background(Color.White).navigationBarsPadding()) {
-                    HorizontalDivider(thickness = 1.dp, color = Color(0xFFF0F0F0))
-                    Row(
+            if (currentRoute in listOf("home", "search", "qr", "alerts", "history")) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(64.dp)
+                        .background(Color.White),
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val items = listOf(
+                        Triple("home", "Home", Icons.Default.Home),
+                        Triple("search", "Search", Icons.Default.Search)
+                    )
+                    
+                    items.forEach { (route, label, icon) ->
+                        val isSelected = currentRoute == route
+                        val tint = if (isSelected) PhonePePurple else Color.Gray
+                        
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .clickable {
+                                    if (!isSelected) {
+                                        navController.navigate(route) {
+                                            popUpTo("home")
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                    }
+                                },
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = label,
+                                tint = tint,
+                                modifier = Modifier.size(26.dp)
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = label,
+                                color = tint,
+                                fontSize = 11.sp,
+                                fontWeight = if (isSelected) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Medium
+                            )
+                        }
+                    }
+                    
+                    // Center QR Button
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(64.dp),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        val routes = listOf("home", "search", "qr", "alerts", "history")
-                        val labels = listOf("Home", "Search", "", "Alerts", "History")
-                        val iconsFilled = listOf(
-                            Icons.Filled.Home,
-                            Icons.Filled.Search,
-                            Icons.Filled.QrCodeScanner,
-                            Icons.Filled.Notifications,
-                            Icons.Filled.Schedule
-                        )
-                        val iconsOutlined = listOf(
-                            Icons.Outlined.Home,
-                            Icons.Outlined.Search,
-                            Icons.Filled.QrCodeScanner,
-                            Icons.Outlined.Notifications,
-                            Icons.Outlined.Schedule
-                        )
-
-                        routes.forEachIndexed { index, route ->
-                            val label = labels[index]
-                            val isSelected = currentRoute == route
-                            val icon = if (isSelected) iconsFilled[index] else iconsOutlined[index]
-                            val tint = if (isSelected) Color.Black else Color.Gray
-
-                            if (route == "qr") {
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .fillMaxHeight()
-                                        .clickable {
-                                            val permissions = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                                                arrayOf(android.Manifest.permission.CAMERA, android.Manifest.permission.READ_MEDIA_IMAGES)
-                                            } else {
-                                                arrayOf(android.Manifest.permission.CAMERA, android.Manifest.permission.READ_EXTERNAL_STORAGE)
-                                            }
-                                            permissionLauncher.launch(permissions)
-                                        },
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(46.dp)
-                                            .clip(CircleShape)
-                                            .background(Color(0xFF5f259f)), // PhonePe Purple
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Filled.QrCodeScanner,
-                                            contentDescription = "QR Scanner",
-                                            tint = Color.White,
-                                            modifier = Modifier.size(24.dp)
-                                        )
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .clickable {
+                                if (currentRoute != "qr") {
+                                    navController.navigate("qr") {
+                                        popUpTo("home")
+                                        launchSingleTop = true
+                                        restoreState = true
                                     }
                                 }
-                            } else {
-                                Column(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .fillMaxHeight()
-                                        .clickable {
-                                            if (!isSelected) {
-                                                navController.navigate(route) {
-                                                    popUpTo("home")
-                                                    launchSingleTop = true
-                                                    restoreState = true
-                                                }
-                                            }
-                                        },
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    Icon(
-                                        imageVector = icon,
-                                        contentDescription = label,
-                                        tint = tint,
-                                        modifier = Modifier.size(26.dp)
-                                    )
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = label,
-                                        color = tint,
-                                        fontSize = 11.sp,
-                                        fontWeight = if (isSelected) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Medium
-                                    )
+                            },
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .background(PhonePePurple, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.QrCodeScanner,
+                                contentDescription = "QR Scanner",
+                                tint = Color.White,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+                    }
+                    
+                    // Alerts and History
+                    val rightItems = listOf(
+                        Triple("alerts", "Alerts", Icons.Outlined.Notifications),
+                        Triple("history", "History", Icons.Default.History)
+                    )
+                    
+                    rightItems.forEach { (route, label, icon) ->
+                        val isSelected = currentRoute == route
+                        val tint = if (isSelected) PhonePePurple else Color.Gray
+                        
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .clickable {
+                                    if (!isSelected) {
+                                        navController.navigate(route) {
+                                            popUpTo("home")
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                    }
+                                },
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Box {
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = label,
+                                    tint = tint,
+                                    modifier = Modifier.size(26.dp)
+                                )
+                                if (route == "alerts") {
+                                    Box(
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .offset(x = 4.dp, y = (-2).dp)
+                                            .size(14.dp)
+                                            .background(Color(0xFF388E3C), CircleShape),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("1", color = Color.White, fontSize = 9.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                                    }
                                 }
                             }
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = label,
+                                color = tint,
+                                fontSize = 11.sp,
+                                fontWeight = if (isSelected) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Medium
+                            )
                         }
                     }
                 }
@@ -780,3 +810,26 @@ fun MainAppLayout() {
         }
     }
 
+
+@Composable
+fun ShakeEffect(onShake: () -> Unit) {
+    val context = LocalContext.current
+    val currentOnShake by rememberUpdatedState(onShake)
+    
+    DisposableEffect(context) {
+        val sensorManager = context.getSystemService(android.content.Context.SENSOR_SERVICE) as android.hardware.SensorManager
+        val accelerometer = sensorManager.getDefaultSensor(android.hardware.Sensor.TYPE_ACCELEROMETER)
+        
+        val shakeDetector = com.example.ShakeDetector {
+            currentOnShake()
+        }
+        
+        if (accelerometer != null) {
+            sensorManager.registerListener(shakeDetector, accelerometer, android.hardware.SensorManager.SENSOR_DELAY_UI)
+        }
+        
+        onDispose {
+            sensorManager.unregisterListener(shakeDetector)
+        }
+    }
+}

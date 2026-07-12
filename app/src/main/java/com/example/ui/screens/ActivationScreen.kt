@@ -1,5 +1,15 @@
 package com.example.ui.screens
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
+import kotlinx.coroutines.withContext
+import com.example.BuildConfig
+
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.layout.*
@@ -7,6 +17,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material3.*
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,23 +40,40 @@ fun ActivationScreen(prefsManager: PrefsManager, onActivated: () -> Unit) {
     var errorMessage by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var freeTrialUrl by remember { mutableStateOf("https://gplinks.com/") }
 
     LaunchedEffect(Unit) {
-        try {
-            val isFirebaseInitialized = try { com.google.firebase.FirebaseApp.getInstance() != null } catch (e: Exception) { false }
-            if (isFirebaseInitialized) {
-                val db = FirebaseFirestore.getInstance()
-                db.collection("app_settings").document("urls").get()
-                    .addOnSuccessListener { doc ->
-                        if (doc.exists()) {
-                            doc.getString("freeTrialUrl")?.let { url ->
-                                if (url.isNotEmpty()) freeTrialUrl = url
-                            }
+        scope.launch {
+            try {
+                val apiKey = BuildConfig.FIREBASE_API_KEY
+                val projectId = BuildConfig.FIREBASE_PROJECT_ID
+                
+                if (apiKey.isNotEmpty() && !apiKey.contains("YOUR_API_KEY")) {
+                    val client = OkHttpClient()
+                    val getUrl = "https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents/app_settings/urls?key=$apiKey"
+                    val request = Request.Builder().url(getUrl).build()
+                    
+                    val response = withContext(Dispatchers.IO) {
+                        client.newCall(request).execute()
+                    }
+                    
+                    val responseBody = response.body?.string() ?: ""
+                    if (response.isSuccessful) {
+                        val json = JSONObject(responseBody)
+                        val fields = json.optJSONObject("fields")
+                        val urlObj = fields?.optJSONObject("url_shortener") 
+                            ?: fields?.optJSONObject("urlShortener") 
+                            ?: fields?.optJSONObject("freeTrialUrl") 
+                            ?: fields?.optJSONObject("url")
+                        val url = urlObj?.optString("stringValue") ?: ""
+                        if (url.isNotEmpty()) {
+                            freeTrialUrl = url
                         }
                     }
-            }
-        } catch (e: Exception) {}
+                }
+            } catch (e: Exception) {}
+        }
     }
 
     Scaffold(
@@ -75,25 +104,39 @@ fun ActivationScreen(prefsManager: PrefsManager, onActivated: () -> Unit) {
             
                         OutlinedTextField(
                 value = userNameInput,
-                onValueChange = { userNameInput = it; errorMessage = "" },
+                onValueChange = { 
+                    userNameInput = it
+                    if (errorMessage.isNotEmpty()) errorMessage = "" 
+                },
                 label = { Text("Your Name") },
                 placeholder = { Text("Enter your full name") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                enabled = !isLoading
+                enabled = !isLoading,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email,
+                    autoCorrect = false
+                )
             )
             
             Spacer(modifier = Modifier.height(16.dp))
             
             OutlinedTextField(
                 value = keyInput,
-                onValueChange = { keyInput = it; errorMessage = "" },
+                onValueChange = { 
+                    keyInput = it
+                    if (errorMessage.isNotEmpty()) errorMessage = "" 
+                },
                 label = { Text("Activation Key") },
                 placeholder = { Text("e.g. Ph-1299-RK") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 isError = errorMessage.isNotEmpty(),
-                enabled = !isLoading
+                enabled = !isLoading,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email,
+                    autoCorrect = false
+                )
             )
             
             if (errorMessage.isNotEmpty()) {
@@ -167,7 +210,7 @@ fun ActivationScreen(prefsManager: PrefsManager, onActivated: () -> Unit) {
                                     }
                                 }
                                 .addOnFailureListener {
-                                    errorMessage = "Error connecting to server."
+                                    errorMessage = "Error: ${it.message}"
                                     isLoading = false
                                 }
                         } catch (e: Exception) {
