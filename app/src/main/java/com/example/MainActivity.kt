@@ -59,6 +59,20 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        com.example.ui.NotificationHelper.createNotificationChannel(this)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                androidx.core.app.ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 101)
+            }
+        }
+        
+        com.example.ui.NotificationHelper.createNotificationChannel(this)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                androidx.core.app.ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 101)
+            }
+        }
+        
         try {
             if (com.google.firebase.FirebaseApp.getApps(this).isEmpty()) {
                 val apiKey = BuildConfig.FIREBASE_API_KEY
@@ -557,7 +571,7 @@ fun MainAppLayout() {
             }
 
             composable("my_qr") {
-                QrScreen()
+                QrScreen(viewModel = prankViewModel, onBack = { navController.popBackStack() })
             }
             composable("alerts") {
                 AlertsScreen()

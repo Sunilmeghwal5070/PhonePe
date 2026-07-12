@@ -72,10 +72,10 @@ import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun RechargePinScreen(
+    viewModel: com.example.ui.PrankViewModel,
+    name: String,
     amount: String,
     bankId: String,
-    name: String,
-    viewModel: PrankViewModel,
     onBack: () -> Unit,
     onSuccess: (Int) -> Unit
 ) {
@@ -84,7 +84,7 @@ fun RechargePinScreen(
     
     var enteredPin by remember { mutableStateOf("") }
     var showWrongPinScreen by remember { mutableStateOf(false) }
-    val context = LocalContext.current
+    val context = androidx.compose.ui.platform.LocalContext.current
 
 
     if (showWrongPinScreen) {
@@ -124,6 +124,7 @@ fun RechargePinScreen(
                         customUtr = "201104189977",
                         timestamp = System.currentTimeMillis()
                     ) { txId ->
+                        com.example.ui.NotificationHelper.showBankSmsNotification(context, amt, it.bankDesc.takeLast(4), name, it.bankName)
                         onSuccess(txId)
                     }
                 } ?: run {
@@ -294,13 +295,14 @@ fun RechargeSuccessScreen(
 
                     AnimatedVisibility(visible = planExpanded) {
                         Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 48.dp, vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                            val details = getPlanDetails(currentTx.amount)
                             Column {
                                 Text("Validity", color = Color.Gray, fontSize = 13.sp)
-                                Text("28 Days", color = Color.Black, fontSize = 14.sp)
+                                Text(details.first, color = Color.Black, fontSize = 14.sp)
                             }
                             Column(horizontalAlignment = Alignment.End) {
                                 Text("Data", color = Color.Gray, fontSize = 13.sp)
-                                Text("1.5GB/Day", color = Color.Black, fontSize = 14.sp)
+                                Text(details.second, color = Color.Black, fontSize = 14.sp)
                             }
                         }
                     }
@@ -325,12 +327,12 @@ fun RechargeSuccessScreen(
                         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text("Recharge Amount", color = Color.Gray, fontSize = 14.sp)
-                                Text("₹${(currentTx.amount - 3).toInt()}", color = Color.Gray, fontSize = 14.sp)
+                                Text("₹${currentTx.amount.toInt()}", color = Color.Gray, fontSize = 14.sp)
                             }
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text("Platform fee(inclusive of GST)", color = Color.Gray, fontSize = 14.sp)
-                                Text("+ ₹3", color = Color.Gray, fontSize = 14.sp)
+                                Text("+ ₹0", color = Color.Gray, fontSize = 14.sp)
                             }
                         }
                     }
@@ -476,5 +478,22 @@ fun ActionItem(icon: androidx.compose.ui.graphics.vector.ImageVector, text: Stri
         }
         Spacer(modifier = Modifier.height(8.dp))
         Text(text, fontSize = 12.sp, color = Color.DarkGray, textAlign = androidx.compose.ui.text.style.TextAlign.Center, lineHeight = 16.sp)
+    }
+}
+
+fun getPlanDetails(amount: Double): Pair<String, String> {
+    val planAmt = amount.toInt()
+    return when(planAmt) {
+        299 -> "28 Days" to "1.5 GB/Day"
+        479 -> "56 Days" to "1.5 GB/Day"
+        719 -> "84 Days" to "1.5 GB/Day"
+        29 -> "1 Day" to "2 GB"
+        349 -> "28 Days" to "2.5 GB/Day"
+        899 -> "90 Days" to "2.5 GB/Day"
+        3599 -> "365 Days" to "2.5 GB/Day"
+        26 -> "1 Day" to "1.5 GB"
+        449 -> "28 Days" to "3 GB/Day"
+        901 -> "84 Days" to "3 GB/Day"
+        else -> "28 Days" to "1.5 GB/Day"
     }
 }

@@ -64,6 +64,7 @@ fun ReceiptScreen(
     onNavigateToCheckBalance: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val view = androidx.compose.ui.platform.LocalView.current.rootView
     val clipboardManager = LocalClipboardManager.current
     
     // Select transaction and listen to state
@@ -450,6 +451,7 @@ fun ProcessingScreen(
     onSkip: () -> Unit
 ) {
     val context = LocalContext.current
+    val view = androidx.compose.ui.platform.LocalView.current.rootView
     val initials = remember(receiverName) {
         receiverName.split(" ")
             .filter { it.isNotBlank() }

@@ -93,8 +93,9 @@ fun ScannerScreen(onBack: () -> Unit, onScanSuccess: (String, String) -> Unit) {
                                         for (barcode in barcodes) {
                                             if (barcode.valueType == Barcode.TYPE_URL || barcode.valueType == Barcode.TYPE_TEXT) {
                                                 val url = barcode.rawValue ?: continue
-                                                if (url.startsWith("upi://pay")) {
-                                                    val uri = Uri.parse(url)
+                                                val cleanUrl = url.trim()
+                                                if (cleanUrl.lowercase().startsWith("upi://pay")) {
+                                                    val uri = Uri.parse(cleanUrl)
                                                     val name = uri.getQueryParameter("pn") ?: "Unknown"
                                                     val upi = uri.getQueryParameter("pa") ?: "unknown@upi"
                                                     imageAnalysis.clearAnalyzer()
@@ -262,15 +263,7 @@ fun ScannerScreen(onBack: () -> Unit, onScanSuccess: (String, String) -> Unit) {
                     .padding(bottom = 32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Fake Scanner button for Emulator (Hidden by default, used for testing without actual QR)
-                Text(
-                    "Simulate Scan", 
-                    color = Color.White.copy(alpha = 0.3f), 
-                    fontSize = 12.sp,
-                    modifier = Modifier
-                        .clickable { onScanSuccess("Sunil Meghwal", "sunil@ybl") }
-                        .padding(bottom = 24.dp)
-                )
+                
                 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("BHIM", color = Color.White.copy(alpha = 0.7f), fontSize = 18.sp, fontWeight = FontWeight.Bold, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)

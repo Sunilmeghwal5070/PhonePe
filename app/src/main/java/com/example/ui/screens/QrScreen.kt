@@ -1,5 +1,8 @@
 package com.example.ui.screens
 
+import com.example.ui.PrankViewModel
+
+
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -38,10 +41,14 @@ import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun QrScreen(onBack: () -> Unit = {}) {
+fun QrScreen(viewModel: PrankViewModel, onBack: () -> Unit = {}) {
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
-    val upiId = "sunilmeghwal6367@ybl"
+    val bankAccounts by viewModel.bankAccounts.collectAsState()
+    val primaryBank = bankAccounts.firstOrNull()
+    val bankName = primaryBank?.bankName ?: "State Bank Of India"
+    val last4 = primaryBank?.bankDesc?.takeLast(4) ?: "0000"
+    val upiId = primaryBank?.upiIds?.firstOrNull() ?: "unknown@ybl"
 
     Scaffold(
         topBar = {
@@ -81,7 +88,7 @@ fun QrScreen(onBack: () -> Unit = {}) {
                 contentAlignment = Alignment.Center
             ) {
                 coil.compose.AsyncImage(
-                    model = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Union_Bank_of_India_Logo.svg/1024px-Union_Bank_of_India_Logo.svg.png",
+                    model = getBankLogoUrl(bankName),
                     contentDescription = "Bank Logo",
                     modifier = Modifier.fillMaxSize().padding(6.dp),
                     contentScale = androidx.compose.ui.layout.ContentScale.Fit
@@ -91,7 +98,7 @@ fun QrScreen(onBack: () -> Unit = {}) {
             Spacer(modifier = Modifier.height(16.dp))
             
             Text(
-                text = "Union Bank Of India - 0365",
+                text = "$bankName - $last4",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black

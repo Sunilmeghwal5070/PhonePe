@@ -71,15 +71,41 @@ fun HomeScreen(
     
     var showRechargeReminder by remember { mutableStateOf(!viewModel.hasShownRechargeReminder) }
 
-    var networkStatus by remember { mutableStateOf(0) }
+    var networkStatus by remember { mutableStateOf(0) } // 0 = none/initial, 1 = offline, 2 = online (we are back)
     
-    LaunchedEffect(Unit) {
-        delay(3000)
-        networkStatus = 1
-        delay(4000)
-        networkStatus = 2
-        delay(4000)
-        networkStatus = 0
+    DisposableEffect(context) {
+        val connectivityManager = context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
+        
+        val networkCallback = object : android.net.ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: android.net.Network) {
+                // If it was previously offline, show "We are back"
+                if (networkStatus == 1) {
+                    networkStatus = 2
+                }
+            }
+
+            override fun onLost(network: android.net.Network) {
+                networkStatus = 1
+            }
+        }
+        
+        val request = android.net.NetworkRequest.Builder()
+            .addCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .build()
+            
+        connectivityManager.registerNetworkCallback(request, networkCallback)
+        
+        onDispose {
+            connectivityManager.unregisterNetworkCallback(networkCallback)
+        }
+    }
+    
+    // Auto-hide "We are back" after 3 seconds
+    LaunchedEffect(networkStatus) {
+        if (networkStatus == 2) {
+            delay(3000)
+            networkStatus = 0
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {

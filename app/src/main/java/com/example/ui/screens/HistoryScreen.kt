@@ -286,7 +286,10 @@ fun HistoryItemRow(tx: PrankTransaction, onClick: () -> Unit) {
         // Middle Column
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = if (isRecharge) { if(isFailed) "Mobile recharge for" else "Mobile recharged" } else if (isReceived) "Received from" else "Paid to",
+                text = if (isRecharge) { 
+                    val details = getPlanDetailsHist(tx.amount)
+                    if(isFailed) "Recharge failed - ${details.first}, ${details.second}" else "Mobile recharged - ${details.first}, ${details.second}" 
+                } else if (isReceived) "Received from" else "Paid to",
                 color = Color.Gray,
                 fontSize = 12.sp
             )
@@ -339,5 +342,22 @@ fun HistoryItemRow(tx: PrankTransaction, onClick: () -> Unit) {
                 }
             }
         }
+    }
+}
+
+fun getPlanDetailsHist(amount: Double): Pair<String, String> {
+    val planAmt = amount.toInt()
+    return when(planAmt) {
+        299 -> "28 Days" to "1.5 GB/Day"
+        479 -> "56 Days" to "1.5 GB/Day"
+        719 -> "84 Days" to "1.5 GB/Day"
+        29 -> "1 Day" to "2 GB"
+        349 -> "28 Days" to "2.5 GB/Day"
+        899 -> "90 Days" to "2.5 GB/Day"
+        3599 -> "365 Days" to "2.5 GB/Day"
+        26 -> "1 Day" to "1.5 GB"
+        449 -> "28 Days" to "3 GB/Day"
+        901 -> "84 Days" to "3 GB/Day"
+        else -> "28 Days" to "1.5 GB/Day"
     }
 }
