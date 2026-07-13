@@ -43,12 +43,12 @@ fun PaymentSuccessScreen(
 
     
     val context = LocalContext.current
+    val view = androidx.compose.ui.platform.LocalView.current.rootView
     LaunchedEffect(Unit) {
         playSuccessBeep()
     }
 
     
-    val view = LocalView.current
     val onShare = {
         try {
             val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)

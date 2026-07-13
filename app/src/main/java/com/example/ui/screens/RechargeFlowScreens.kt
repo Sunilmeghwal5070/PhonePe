@@ -193,6 +193,32 @@ fun RechargeSuccessScreen(
 
     var planExpanded by remember { mutableStateOf(false) }
     var paymentExpanded by remember { mutableStateOf(false) }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val view = androidx.compose.ui.platform.LocalView.current.rootView
+
+    fun shareTransaction() {
+        try {
+            val bitmap = android.graphics.Bitmap.createBitmap(view.width, view.height, android.graphics.Bitmap.Config.ARGB_8888)
+            val canvas = android.graphics.Canvas(bitmap)
+            view.draw(canvas)
+            
+            val file = java.io.File(context.cacheDir, "receipt_${System.currentTimeMillis()}.png")
+            val out = java.io.FileOutputStream(file)
+            bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)
+            out.flush()
+            out.close()
+            
+            val uri = androidx.core.content.FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
+            val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                type = "image/png"
+                putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            context.startActivity(android.content.Intent.createChooser(intent, "Share Receipt Via"))
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
 
     Scaffold(
         containerColor = Color(0xFFF9F9FB),
@@ -393,10 +419,10 @@ fun RechargeSuccessScreen(
                         modifier = Modifier.fillMaxWidth().padding(16.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        ActionItem(icon = Icons.Default.Schedule, text = "View\nHistory")
-                        ActionItem(icon = Icons.AutoMirrored.Filled.CallMade, text = "Recharge\nAgain")
+                        ActionItem(icon = Icons.Default.Schedule, text = "View\nHistory", onClick = onDone)
+                        ActionItem(icon = Icons.AutoMirrored.Filled.CallMade, text = "Recharge\nAgain", onClick = onDone)
                         ActionItem(icon = Icons.Default.CallSplit, text = "Split\nExpense")
-                        ActionItem(icon = Icons.Default.Share, text = "Share\nReceipt")
+                        ActionItem(icon = Icons.Default.Share, text = "Share\nReceipt", onClick = { shareTransaction() })
                     }
                 }
             }
@@ -468,8 +494,8 @@ fun RechargeSuccessScreen(
 }
 
 @Composable
-fun ActionItem(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+fun ActionItem(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String, onClick: () -> Unit = {}) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onClick() }) {
         Box(
             modifier = Modifier.size(48.dp).background(Color(0xFFF3E5F5), CircleShape).border(1.dp, Color(0xFFE1BEE7), CircleShape),
             contentAlignment = Alignment.Center
