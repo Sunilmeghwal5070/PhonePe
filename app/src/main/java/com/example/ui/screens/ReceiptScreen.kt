@@ -117,11 +117,9 @@ fun ReceiptScreen(
     LaunchedEffect(paymentState, tx) {
         val currentTx = tx
         if (paymentState == PaymentState.SUCCESS_ANIMATION && currentTx != null && currentTx.status == "SUCCESS") {
-            if (currentTx.type != "PAID") {
-                val amountInt = currentTx.amount.toInt()
-                val textToSpeak = "Received $amountInt rupees on PhonePe"
-                tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, "PhonePePrankTts")
-            }
+            val amountInt = currentTx.amount.toInt()
+            val textToSpeak = "PhonePe par, $amountInt rupaye, praapt hue."
+            tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, "PhonePePrankTts")
         }
     }
 
@@ -144,12 +142,13 @@ fun ReceiptScreen(
     }
 
     fun shareTransaction() {
+        val direction = if (currentTx.type == "PAID") "Paid To" else "Received From"
         val shareMsg = """
             *PhonePe Transaction Receipt*
             ----------------------------------
             Status: ${currentTx.status}
-            Received From: ${currentTx.receiverName}
-            Phone: ${currentTx.receiverPhone}
+            $direction: ${currentTx.receiverName}
+            UPI ID / Phone: ${currentTx.receiverPhone}
             Amount: ₹${currentTx.amount.toInt()}
             Date: $formattedDate
             Txn ID: ${currentTx.transactionId}
@@ -248,15 +247,20 @@ fun ReceiptScreen(
                                     Box(
                                         modifier = Modifier
                                             .size(44.dp)
-                                            .background(Color(0xFF5f259f), RoundedCornerShape(12.dp)),
+                                            .background(if (currentTx.type == "PAID") Color(0xFF29B6F6) else Color(0xFF5f259f), if (currentTx.type == "PAID") CircleShape else RoundedCornerShape(12.dp)),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Icon(
-                                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                            contentDescription = null,
-                                            tint = Color.White,
-                                            modifier = Modifier.size(20.dp).rotate(if (currentTx.type == "PAID") -45f else 135f)
-                                        )
+                                        if (currentTx.type == "PAID") {
+                                            val initials = currentTx.receiverName.split(" ").mapNotNull { it.firstOrNull()?.uppercase() }.take(2).joinToString("")
+                                            Text(initials, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                        } else {
+                                            Icon(
+                                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                                contentDescription = null,
+                                                tint = Color.White,
+                                                modifier = Modifier.size(20.dp).rotate(135f)
+                                            )
+                                        }
                                     }
                                     Spacer(modifier = Modifier.width(12.dp))
                                     Column {
@@ -331,7 +335,7 @@ fun ReceiptScreen(
                                                 .border(1.dp, Color(0xFFEEEEEE), RoundedCornerShape(8.dp)),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            Text(if (currentTx.type == "PAID") currentTx.senderBankName.take(1).uppercase() else currentTx.receiverName.take(1).uppercase(), color = Color(0xFFe31837), fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                            com.example.ui.components.BankLogo(bankName = currentTx.senderBankName, size = 24.dp)
                                         }
                                         Spacer(modifier = Modifier.width(12.dp))
                                         Text(if (currentTx.type == "PAID") userProfile.name else currentTx.receiverName, fontSize = 15.sp, color = Color.DarkGray)

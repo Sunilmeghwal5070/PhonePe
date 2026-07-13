@@ -15,6 +15,7 @@ import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import coil.compose.AsyncImage
@@ -223,6 +224,40 @@ fun AccountDetailsScreen(
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
                 }
             }
+            
+            // Add Balance Card (Unity Ads)
+            val context = androidx.compose.ui.platform.LocalContext.current
+            val activity = context as? android.app.Activity
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { 
+                            if (activity != null) {
+                                com.example.ui.UnityAdsManager.showRewardedAd(activity) {
+                                    if (account != null) {
+                                        viewModel.updateBankAccount(account.copy(balance = account.balance + 500))
+                                        android.widget.Toast.makeText(context, "₹500 added to your account!", android.widget.Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            }
+                        }
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("ADD ₹500 BALANCE (WATCH AD)", color = Color(0xFF388E3C), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Icon(Icons.Default.Add, contentDescription = null, tint = Color(0xFF388E3C), modifier = Modifier.size(16.dp))
+                }
+            }
+            
+
             
 
             if (isEditableState && account != null) {

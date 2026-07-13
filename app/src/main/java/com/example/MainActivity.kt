@@ -94,6 +94,7 @@ class MainActivity : ComponentActivity() {
             e.printStackTrace()
         }
 
+        com.example.ui.UnityAdsManager.initialize(this)
         enableEdgeToEdge()
         setContent {
             MyApplicationTheme {

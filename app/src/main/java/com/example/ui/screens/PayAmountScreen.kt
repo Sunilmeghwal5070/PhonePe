@@ -187,7 +187,7 @@ fun PayAmountScreen(
                                     .padding(vertical = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Box(modifier = Modifier.size(32.dp).border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(8.dp)), contentAlignment = Alignment.Center) { coil.compose.AsyncImage(model = getBankLogoUrl(bank.bankName), contentDescription = null, modifier = Modifier.fillMaxSize().padding(4.dp), contentScale = androidx.compose.ui.layout.ContentScale.Fit) }
+                                Box(modifier = Modifier.size(32.dp).border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(8.dp)), contentAlignment = Alignment.Center) { com.example.ui.components.BankLogo(bankName = bank.bankName, size = 24.dp) }
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(bank.accountName, fontSize = 16.sp)
@@ -195,7 +195,7 @@ fun PayAmountScreen(
                                 }
                                 Text("₹$amount", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                if (currentSelectedBank.id == bank.id) {
+                                if (currentSelectedBank?.id == bank.id) {
                                     Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF388E3C))
                                 } else {
                                     Box(modifier = Modifier.size(24.dp))
@@ -207,10 +207,31 @@ fun PayAmountScreen(
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 
+                val context = androidx.compose.ui.platform.LocalContext.current
+                var showInsufficientBalanceDialog by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+                
+                if (showInsufficientBalanceDialog) {
+                    androidx.compose.material3.AlertDialog(
+                        onDismissRequest = { showInsufficientBalanceDialog = false },
+                        title = { Text("Payment Failed") },
+                        text = { Text("Your account balance is insufficient for this transaction.") },
+                        confirmButton = {
+                            androidx.compose.material3.TextButton(onClick = { showInsufficientBalanceDialog = false }) {
+                                Text("OK", color = PhonePePurple)
+                            }
+                        }
+                    )
+                }
+
                 Button(
                     onClick = { 
-                        showBottomSheet = false
-                        onProceed(amount, currentSelectedBank)
+                        val payAmount = amount.toDoubleOrNull() ?: 0.0
+                        if (payAmount > currentSelectedBank.balance) {
+                            showInsufficientBalanceDialog = true
+                        } else {
+                            showBottomSheet = false
+                            onProceed(amount, currentSelectedBank)
+                        }
                     },
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = PhonePePurple),
