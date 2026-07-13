@@ -65,6 +65,7 @@ fun HomeScreen(
     val context = LocalContext.current
     val transactions by viewModel.allTransactions.collectAsState()
     val userProfile by viewModel.userProfileManager.userProfile.collectAsState()
+    val bankAccounts by viewModel.bankAccounts.collectAsState()
     
     var showDialogText by remember { mutableStateOf<String?>(null) }
     var showDialogTitle by remember { mutableStateOf<String?>(null) }
@@ -145,12 +146,14 @@ fun HomeScreen(
                                 .background(Color(0xFFFBC02D)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = if (userProfile.name.isNotBlank()) userProfile.name.first().toString().uppercase() else "Y",
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 24.sp
-                            )
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                coil.compose.AsyncImage(
+                                    model = getBankLogoUrl(bankAccounts.firstOrNull()?.bankName ?: "SBI"),
+                                    contentDescription = null,
+                                    modifier = Modifier.fillMaxSize().padding(4.dp).clip(CircleShape),
+                                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                )
+                            }
                         }
                         Box(
                             modifier = Modifier
@@ -534,6 +537,7 @@ fun HomeScreen(
                 Card(
                     modifier = Modifier
                         .weight(1f)
+                        .height(52.dp)
                         .clickable {
                             Toast.makeText(context, "Silver Savings opening...", Toast.LENGTH_SHORT).show()
                         },
@@ -567,6 +571,7 @@ fun HomeScreen(
                 Card(
                     modifier = Modifier
                         .weight(1f)
+                        .height(52.dp)
                         .clickable {
                             Toast.makeText(context, "Opening share.market...", Toast.LENGTH_SHORT).show()
                         },

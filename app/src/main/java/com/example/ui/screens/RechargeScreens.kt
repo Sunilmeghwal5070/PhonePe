@@ -171,7 +171,7 @@ fun MobileRechargeScreen(
                         item {
                             Text("ALL CONTACTS", color = Color.Gray, fontSize = 12.sp, modifier = Modifier.padding(16.dp), letterSpacing = 1.sp)
                         }
-                        items(filteredContacts.take(50)) { contact ->
+                        items(filteredContacts) { contact ->
                             ContactItem(contact = contact, onClick = { onContactSelect(contact) })
                         }
                     } else if (hasPermission) {

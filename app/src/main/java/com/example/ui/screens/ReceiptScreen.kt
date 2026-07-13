@@ -117,9 +117,11 @@ fun ReceiptScreen(
     LaunchedEffect(paymentState, tx) {
         val currentTx = tx
         if (paymentState == PaymentState.SUCCESS_ANIMATION && currentTx != null && currentTx.status == "SUCCESS") {
-            val amountInt = currentTx.amount.toInt()
-            val textToSpeak = "Received $amountInt rupees on PhonePe"
-            tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, "PhonePePrankTts")
+            if (currentTx.type != "PAID") {
+                val amountInt = currentTx.amount.toInt()
+                val textToSpeak = "Received $amountInt rupees on PhonePe"
+                tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, "PhonePePrankTts")
+            }
         }
     }
 

@@ -31,6 +31,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun EditDetailsScreen(viewModel: PrankViewModel, onBack: () -> Unit) {
     val userProfile by viewModel.userProfileManager.userProfile.collectAsState()
+    val bankAccounts by viewModel.bankAccounts.collectAsState()
     var isEditing by remember { mutableStateOf(false) }
     var editName by remember { mutableStateOf(userProfile.name) }
     var editPhone by remember { mutableStateOf(userProfile.phone) }
@@ -71,19 +72,12 @@ fun EditDetailsScreen(viewModel: PrankViewModel, onBack: () -> Unit) {
                     .background(Color(0xFFD0D0D0), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                if (userProfile.name.isNotBlank()) {
-                    Text(
-                        text = userProfile.name.first().toString().uppercase(),
-                        color = Color.White,
-                        fontSize = 48.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                } else {
-                    Icon(
-                        Icons.Default.Person,
-                        contentDescription = "Profile Picture",
-                        tint = Color.White,
-                        modifier = Modifier.size(80.dp)
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    coil.compose.AsyncImage(
+                        model = getBankLogoUrl(bankAccounts.firstOrNull()?.bankName ?: "SBI"),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize().padding(12.dp).clip(CircleShape),
+                        contentScale = androidx.compose.ui.layout.ContentScale.Fit
                     )
                 }
             }

@@ -48,6 +48,9 @@ class PrefsManager(context: Context) {
     
     fun getActivationExpiry(): Long = prefs.getLong("activation_expiry", 0L)
 
+    fun isShakeEnabled(): Boolean = prefs.getBoolean("shake_to_scan", false)
+    fun setShakeEnabled(enabled: Boolean) = prefs.edit { putBoolean("shake_to_scan", enabled) }
+
     fun isActivated(): Boolean {
         val expiry = getActivationExpiry()
         return expiry > System.currentTimeMillis()

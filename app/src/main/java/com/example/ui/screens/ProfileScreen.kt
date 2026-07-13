@@ -93,12 +93,14 @@ fun ProfileScreen(
                         .background(Color(0xFFFBC02D)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = if (userProfile.name.isNotBlank()) userProfile.name.first().toString().uppercase() else "Y",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    )
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        coil.compose.AsyncImage(
+                            model = getBankLogoUrl(bankAccounts.firstOrNull()?.bankName ?: "SBI"),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize().padding(4.dp).clip(RoundedCornerShape(12.dp)),
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -320,10 +322,10 @@ fun ProfileScreen(
                 Icon(Icons.Default.ScreenRotation, contentDescription = null, tint = Color.Black, modifier = Modifier.size(24.dp))
                 Spacer(modifier = Modifier.width(16.dp))
                 Text("Shake to Scan", fontSize = 16.sp, color = Color.Black, modifier = Modifier.weight(1f))
-                var shakeEnabled by remember { mutableStateOf(false) }
+                val shakeEnabled by viewModel.isShakeEnabled.collectAsState()
                 Switch(
                     checked = shakeEnabled,
-                    onCheckedChange = { shakeEnabled = it },
+                    onCheckedChange = { viewModel.setShakeEnabled(it) },
                     colors = SwitchDefaults.colors(checkedThumbColor = Color(0xFF5f259f), checkedTrackColor = Color(0xFFE8EAF6))
                 )
             }

@@ -47,7 +47,7 @@ fun ChatScreen(
     
     // Filter transactions by this contact
     val contactTransactions = transactions.filter { 
-        it.receiverName.equals(contactName, ignoreCase = true) 
+        it.receiverName.trim().equals(contactName.trim(), ignoreCase = true) 
     }.sortedBy { it.timestamp }
 
     Scaffold(

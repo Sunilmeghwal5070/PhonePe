@@ -57,6 +57,44 @@ fun ScannerScreen(onBack: () -> Unit, onScanSuccess: (String, String) -> Unit) {
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         hasCamPermission = granted
     }
+    
+    val cameraRef = remember { mutableStateOf<androidx.camera.core.Camera?>(null) }
+    var isTorchOn by remember { mutableStateOf(false) }
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        if (uri != null) {
+            try {
+                val image = InputImage.fromFilePath(context, uri)
+                val scanner = BarcodeScanning.getClient()
+                scanner.process(image)
+                    .addOnSuccessListener { barcodes ->
+                        var found = false
+                        for (barcode in barcodes) {
+                            if (barcode.valueType == Barcode.TYPE_URL || barcode.valueType == Barcode.TYPE_TEXT) {
+                                val url = barcode.rawValue ?: continue
+                                val cleanUrl = url.trim()
+                                if (cleanUrl.lowercase().startsWith("upi://pay")) {
+                                    val parsedUri = Uri.parse(cleanUrl)
+                                    val name = parsedUri.getQueryParameter("pn") ?: "Unknown"
+                                    val upi = parsedUri.getQueryParameter("pa") ?: "unknown@upi"
+                                    onScanSuccess(name, upi)
+                                    found = true
+                                    break
+                                }
+                            }
+                        }
+                        if (!found) {
+                            android.widget.Toast.makeText(context, "No valid UPI QR found", android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    .addOnFailureListener {
+                        android.widget.Toast.makeText(context, "Failed to scan image", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         if (!hasCamPermission) {
@@ -96,10 +134,14 @@ fun ScannerScreen(onBack: () -> Unit, onScanSuccess: (String, String) -> Unit) {
                                                 val cleanUrl = url.trim()
                                                 if (cleanUrl.lowercase().startsWith("upi://pay")) {
                                                     val uri = Uri.parse(cleanUrl)
-                                                    val name = uri.getQueryParameter("pn") ?: "Unknown"
-                                                    val upi = uri.getQueryParameter("pa") ?: "unknown@upi"
+                                                    val name = uri.getQueryParameter("pn") ?: uri.getQueryParameter("pa") ?: "Unknown"
+                                                    val upi = uri.getQueryParameter("pa") ?: uri.getQueryParameter("pn") ?: "unknown@upi"
                                                     imageAnalysis.clearAnalyzer()
                                                     onScanSuccess(name, upi)
+                                                    break
+                                                } else if (cleanUrl.contains("@")) {
+                                                    imageAnalysis.clearAnalyzer()
+                                                    onScanSuccess(cleanUrl, cleanUrl)
                                                     break
                                                 }
                                             }
@@ -232,7 +274,7 @@ fun ScannerScreen(onBack: () -> Unit, onScanSuccess: (String, String) -> Unit) {
                         modifier = Modifier
                             .size(52.dp)
                             .background(Color(0x66000000), CircleShape)
-                            .clickable { },
+                            .clickable { imagePickerLauncher.launch("image/*") },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(Icons.Outlined.Image, contentDescription = "Upload QR", tint = Color.White)
@@ -245,11 +287,14 @@ fun ScannerScreen(onBack: () -> Unit, onScanSuccess: (String, String) -> Unit) {
                     Box(
                         modifier = Modifier
                             .size(52.dp)
-                            .background(Color(0x66000000), CircleShape)
-                            .clickable { },
+                            .background(if (isTorchOn) Color(0x99FFFFFF) else Color(0x66000000), CircleShape)
+                            .clickable {
+                                isTorchOn = !isTorchOn
+                                cameraRef.value?.cameraControl?.enableTorch(isTorchOn)
+                            },
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Outlined.FlashlightOn, contentDescription = "Torch", tint = Color.White)
+                        Icon(Icons.Outlined.FlashlightOn, contentDescription = "Torch", tint = if (isTorchOn) Color.Black else Color.White)
                     }
                     Spacer(modifier = Modifier.height(12.dp))
                     Text("Torch", color = Color.White, fontSize = 13.sp)

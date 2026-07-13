@@ -11,12 +11,14 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import kotlinx.coroutines.withContext
 import android.os.Bundle
+import com.google.firebase.firestore.FirebaseFirestore
+import android.widget.Toast
+import com.google.firebase.FirebaseApp
 import android.net.Uri
 import java.net.URLEncoder
 import java.net.URLDecoder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -129,12 +131,15 @@ fun MainAppLayout() {
 
     val showBottomBar = currentRoute in listOf("home", "search", "qr", "alerts", "history")
     
-    ShakeEffect {
-        if (currentRoute != "qr") {
-            navController.navigate("qr") {
-                popUpTo("home")
-                launchSingleTop = true
-                restoreState = true
+    val isShakeEnabled by prankViewModel.isShakeEnabled.collectAsState()
+    if (isShakeEnabled) {
+        ShakeEffect {
+            if (currentRoute != "qr") {
+                navController.navigate("qr") {
+                    popUpTo("home")
+                    launchSingleTop = true
+                    restoreState = true
+                }
             }
         }
     }
@@ -214,19 +219,70 @@ fun MainAppLayout() {
     
     val bankAccounts by prankViewModel.bankAccounts.collectAsState()
     val allTransactions by prankViewModel.allTransactions.collectAsState()
+
+    var showDeactivationDialog by remember { mutableStateOf<String?>(null) }
+    
+    if (showDeactivationDialog != null) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { 
+                showDeactivationDialog = null
+                prefsManager.saveActivation("", 0L)
+                isActivated = false
+            },
+            title = { androidx.compose.material3.Text("Access Revoked") },
+            text = { androidx.compose.material3.Text(showDeactivationDialog!!) },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = {
+                    showDeactivationDialog = null
+                    prefsManager.saveActivation("", 0L)
+                    isActivated = false
+                }) {
+                    androidx.compose.material3.Text("OK")
+                }
+            }
+        )
+    }
+
+    LaunchedEffect(isActivated) {
+        if (isActivated) {
+            val key = prefsManager.getActivationKey()
+            if (!key.isNullOrEmpty()) {
+                try {
+                    if (FirebaseApp.getInstance() != null) {
+                        val db = FirebaseFirestore.getInstance()
+                        val registration = db.collection("activation_keys").document(key).addSnapshotListener { snapshot, error ->
+                            if (error != null) return@addSnapshotListener
+                            if (snapshot != null && snapshot.exists()) {
+                                val status = snapshot.getString("status")
+                                if (status == "BLOCKED" || status == "EXPIRED") {
+                                    showDeactivationDialog = if (status == "BLOCKED") {
+                                        "Your activation key has been blocked by the administrator."
+                                    } else {
+                                        "Your activation key has expired."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch(e: Exception) {}
+            }
+        }
+    }
     
 
     Scaffold(
         bottomBar = {
             if (currentRoute in listOf("home", "search", "qr", "alerts", "history")) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(64.dp)
-                        .background(Color.White),
-                    horizontalArrangement = Arrangement.SpaceAround,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Column(modifier = Modifier.background(Color.White).navigationBarsPadding()) {
+                    Divider(color = Color(0xFFEEEEEE), thickness = 1.dp)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(64.dp)
+                            .background(Color.White),
+                        horizontalArrangement = Arrangement.SpaceAround,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                     val items = listOf(
                         Triple("home", "Home", Icons.Default.Home),
                         Triple("search", "Search", Icons.Default.Search)
@@ -356,6 +412,7 @@ fun MainAppLayout() {
                         }
                     }
                 }
+                } // End Column for navigation bars padding
             }
         }
     ) { innerPadding ->
@@ -405,7 +462,7 @@ fun MainAppLayout() {
                     onBack = { navController.popBackStack() },
                     onScanSuccess = { name, upi ->
                         prankViewModel.selectedPayeeUpi = upi
-                        navController.navigate("pay_amount/${java.net.URLEncoder.encode(name, "UTF-8")}")
+                        navController.navigate("pay_amount/${Uri.encode(name)}")
                     }
                 )
             }
@@ -416,7 +473,7 @@ fun MainAppLayout() {
                 com.example.ui.screens.MobileRechargeScreen(
                     onBack = { navController.popBackStack() },
                     onContactSelect = { contact ->
-                        navController.navigate("recharge_plan/${java.net.URLEncoder.encode(contact.name, "UTF-8")}/${contact.number}")
+                        navController.navigate("recharge_plan/${Uri.encode(contact.name)}/${contact.number}")
                     }
                 )
             }
@@ -459,7 +516,7 @@ fun MainAppLayout() {
                     viewModel = prankViewModel,
                     onBack = { navController.popBackStack() },
                     onSuccess = { txId ->
-                        navController.navigate("recharge_processing/$amount/$txId/${java.net.URLEncoder.encode(name, "UTF-8")}") {
+                        navController.navigate("recharge_processing/$amount/$txId/${Uri.encode(name)}") {
                             popUpTo("recharge_plan") { inclusive = false }
                         }
                     }
@@ -481,7 +538,7 @@ fun MainAppLayout() {
                     name = name,
                     amount = amount,
                     onSuccess = { 
-                        navController.navigate("recharge_success/$amount/$transactionId/${java.net.URLEncoder.encode(name, "UTF-8")}") {
+                        navController.navigate("recharge_success/$amount/$transactionId/${Uri.encode(name)}") {
                             popUpTo("mobile_recharge") { inclusive = false }
                         }
                     }
@@ -517,7 +574,7 @@ fun MainAppLayout() {
                     onBack = { navController.popBackStack() },
                     onNewPayment = { navController.navigate("select_contact") },
                     onContactSelect = { contactName ->
-                        navController.navigate("chat/${java.net.URLEncoder.encode(contactName, "UTF-8")}")
+                        navController.navigate("chat/${Uri.encode(contactName)}")
                     }
                 )
             }
@@ -526,7 +583,7 @@ fun MainAppLayout() {
                 SelectContactScreen(
                     onBack = { navController.popBackStack() },
                     onContactSelect = { contact ->
-                        navController.navigate("chat/${java.net.URLEncoder.encode(contact.name, "UTF-8")}")
+                        navController.navigate("chat/${Uri.encode(contact.name)}")
                     }
                 )
             }
@@ -542,7 +599,7 @@ fun MainAppLayout() {
                     onBack = { navController.popBackStack() },
                     onPayAmount = { amount, name ->
                         // Navigate to pay flow with pre-filled name and amount
-                        navController.navigate("pay_amount_prefilled/$amount/${java.net.URLEncoder.encode(name, "UTF-8")}")
+                        navController.navigate("pay_amount_prefilled/$amount/${Uri.encode(name)}")
                     }
                 )
             }
@@ -565,7 +622,7 @@ fun MainAppLayout() {
                     prefilledAmount = amount,
                     onBack = { navController.popBackStack() },
                     onProceed = { amt, bankAccount -> 
-                        navController.navigate("pay_pin/$amt/${bankAccount.id}/${java.net.URLEncoder.encode(name, "UTF-8")}")
+                        navController.navigate("pay_pin/$amt/${bankAccount.id}/${Uri.encode(name)}")
                     }
                 )
             }
@@ -584,7 +641,7 @@ fun MainAppLayout() {
                     androidx.navigation.navArgument("name") { type = androidx.navigation.NavType.StringType }
                 )
             ) { backStackEntry ->
-                val name = java.net.URLDecoder.decode(backStackEntry.arguments?.getString("name") ?: "Karishna Karishna", "UTF-8")
+                val name = backStackEntry.arguments?.getString("name") ?: "Karishna Karishna"
                 
                 PayAmountScreen(
                     viewModel = prankViewModel,
@@ -592,7 +649,7 @@ fun MainAppLayout() {
                     upiId = prankViewModel.selectedPayeeUpi,
                     onBack = { navController.popBackStack() },
                     onProceed = { amount, bankAccount -> 
-                        navController.navigate("pay_pin/$amount/${bankAccount.id}/${java.net.URLEncoder.encode(name, "UTF-8")}")
+                        navController.navigate("pay_pin/$amount/${bankAccount.id}/${Uri.encode(name)}")
                     }
                 )
             }
@@ -607,7 +664,7 @@ fun MainAppLayout() {
             ) { backStackEntry ->
                 val amount = backStackEntry.arguments?.getString("amount") ?: "0"
                 val bankId = backStackEntry.arguments?.getString("bankId") ?: ""
-                val name = java.net.URLDecoder.decode(backStackEntry.arguments?.getString("name") ?: "Karishna Karishna", "UTF-8")
+                val name = backStackEntry.arguments?.getString("name") ?: "Karishna Karishna"
                 val bankAccounts by prankViewModel.bankAccounts.collectAsState()
                 val selectedBank = bankAccounts.find { it.id == bankId }
                 
@@ -623,11 +680,11 @@ fun MainAppLayout() {
                         val correctPin = selectedBank?.pin ?: "1234"
                         if (enteredPin == correctPin) {
                             enteredPin = ""
-                            navController.navigate("pay_processing/$amount/$bankId/${java.net.URLEncoder.encode(name, "UTF-8")}") {
+                            navController.navigate("pay_processing/$amount/$bankId/${Uri.encode(name)}") {
                                 popUpTo("pay_amount") { inclusive = true }
                             }
                         } else {
-                            Toast.makeText(context, "Incorrect UPI PIN", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Incorrect UPI PIN (Default is 1234)", Toast.LENGTH_SHORT).show()
                             enteredPin = ""
                         }
                     }
@@ -644,26 +701,38 @@ fun MainAppLayout() {
             ) { backStackEntry ->
                 val amount = backStackEntry.arguments?.getString("amount") ?: "0"
                 val bankId = backStackEntry.arguments?.getString("bankId") ?: ""
-                val name = java.net.URLDecoder.decode(backStackEntry.arguments?.getString("name") ?: "Karishna Karishna", "UTF-8")
+                val name = backStackEntry.arguments?.getString("name") ?: "Karishna Karishna"
                 val bankAccounts by prankViewModel.bankAccounts.collectAsState()
                 val selectedBank = bankAccounts.find { it.id == bankId }
                 
                 PaymentProcessingScreen(
                     onProcessingComplete = {
                         // Insert transaction
+                        val parsedAmount = amount.toDoubleOrNull() ?: 100.0
+                        val resolvedBankName = selectedBank?.bankName ?: "State Bank of India"
+                        val resolvedBankLast4 = selectedBank?.bankDesc?.takeLast(4) ?: "0365"
+                        
+                        com.example.ui.NotificationHelper.showBankSmsNotification(
+                            context = context,
+                            amount = parsedAmount,
+                            bankLast4 = resolvedBankLast4,
+                            payeeName = name,
+                            bankName = resolvedBankName
+                        )
+                        
                         prankViewModel.insertTransaction(
                             name = name,
                             phone = "9876543210",
                             upiId = "krishna88750@axl",
-                            amount = amount.toDoubleOrNull() ?: 100.0,
+                            amount = parsedAmount,
                             status = "SUCCESS",
-                            bankName = selectedBank?.bankName ?: "State Bank of India",
-                            bankLast4 = selectedBank?.bankDesc?.takeLast(4) ?: "0365",
+                            bankName = resolvedBankName,
+                            bankLast4 = resolvedBankLast4,
                             customTxId = "",
                             customUtr = "",
                             timestamp = System.currentTimeMillis(),
                             onSuccess = { insertedId ->
-                                navController.navigate("pay_success/$amount/$insertedId/${java.net.URLEncoder.encode(name, "UTF-8")}") {
+                                navController.navigate("pay_success/$amount/$insertedId/${Uri.encode(name)}") {
                                     popUpTo("home")
                                 }
                             }
@@ -682,7 +751,7 @@ fun MainAppLayout() {
             ) { backStackEntry ->
                 val amount = backStackEntry.arguments?.getString("amount") ?: "0"
                 val txId = backStackEntry.arguments?.getInt("transactionId") ?: 0
-                val name = java.net.URLDecoder.decode(backStackEntry.arguments?.getString("name") ?: "Karishna Karishna", "UTF-8")
+                val name = backStackEntry.arguments?.getString("name") ?: "Karishna Karishna"
                 
                 val allTxs by prankViewModel.allTransactions.collectAsState()
                 val currentTx = allTxs.find { it.id == txId }

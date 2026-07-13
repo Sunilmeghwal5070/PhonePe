@@ -40,8 +40,16 @@ fun CreatePrankScreen(
     
     val bankAccounts by viewModel.bankAccounts.collectAsState()
     var selectedBank by remember { mutableStateOf(bankAccounts.firstOrNull()) }
-    var senderBankName by remember(selectedBank) { mutableStateOf(selectedBank?.bankName ?: "State Bank of India") }
-    var senderBankLast4 by remember { mutableStateOf((1000..9999).random().toString()) }
+    var senderBankName by remember { mutableStateOf(selectedBank?.bankName ?: "State Bank of India") }
+    var senderBankLast4 by remember { mutableStateOf(selectedBank?.bankDesc?.takeLast(4) ?: (1000..9999).random().toString()) }
+
+    LaunchedEffect(bankAccounts) {
+        if (selectedBank == null && bankAccounts.isNotEmpty()) {
+            selectedBank = bankAccounts.first()
+            senderBankName = bankAccounts.first().bankName
+            senderBankLast4 = bankAccounts.first().bankDesc.takeLast(4)
+        }
+    }
     
     var showPinScreen by remember { mutableStateOf(false) }
     var showWrongPinScreen by remember { mutableStateOf(false) }
@@ -74,11 +82,7 @@ fun CreatePrankScreen(
                 val correctPin = selectedBank?.pin ?: "1234"
                 if (enteredPin == correctPin) {
                     val finalAmount = amount.toDoubleOrNull() ?: 100.0
-                    if (selectedBank != null && finalAmount > selectedBank!!.balance) {
-                        pinErrorTitle = "Insufficient Balance"
-                        showWrongPinScreen = true
-                        return@PinEntryScreen
-                    }
+                    
                     val timestamp = System.currentTimeMillis()
                     
                     viewModel.insertTransaction(
@@ -206,8 +210,12 @@ fun CreatePrankScreen(
                                 DropdownMenuItem(
                                     text = { Text(bank) },
                                     onClick = {
-                                        senderBankName = bank
-                                        selectedBank = bankAccounts.find { it.bankName == bank }
+                                        val newBank = bankAccounts.find { it.bankName == bank }
+                                        if (newBank != null) {
+                                            selectedBank = newBank
+                                            senderBankName = newBank.bankName
+                                            senderBankLast4 = newBank.bankDesc.takeLast(4)
+                                        }
                                         showBankDropdown = false
                                     }
                                 )

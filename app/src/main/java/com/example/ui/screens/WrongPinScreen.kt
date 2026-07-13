@@ -76,6 +76,9 @@ fun WrongPinScreen(
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
+            if (!errorTitle.contains("Insufficient", ignoreCase = true)) {
+                Text("Hint: The default PIN is 1234 (change it in Bank Accounts).", fontSize = 12.sp, color = Color.Gray)
+            }
             Spacer(modifier = Modifier.height(16.dp))
             
             Row(verticalAlignment = Alignment.CenterVertically) {

@@ -98,13 +98,16 @@ fun PayAmountScreen(
                                 .background(Color(0xFF607D8B), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(payeeName.take(2).uppercase(), color = Color.White, fontSize = 18.sp)
+                            Text(payeeName.replace("+", "").replace("%20", "").take(2).uppercase(), color = Color.White, fontSize = 18.sp)
                         }
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
-                            Text(payeeName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                            Text(payeeName.replace("+", " ").replace("%20", " "), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Banking name: $payeeName", color = Color.Gray, fontSize = 14.sp)
+                                Text(upiId, color = Color.Gray, fontSize = 14.sp)
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("Banking name: ${payeeName.replace("+", " ").replace("%20", " ")}", color = Color.Gray, fontSize = 12.sp)
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF388E3C), modifier = Modifier.size(14.dp))
                             }
@@ -166,24 +169,38 @@ fun PayAmountScreen(
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 
+                var currentSelectedBank by remember { mutableStateOf(selectedBank) }
+                
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Recommended", color = Color.Gray, fontSize = 12.sp)
+                        Text("Accounts", color = Color.Gray, fontSize = 12.sp)
                         Spacer(modifier = Modifier.height(8.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            // Bank Logo Placeholder
-                            com.example.ui.components.BankLogo(selectedBank.bankName, 32.dp)
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(selectedBank.accountName, fontSize = 16.sp)
-                                Text("•• ${selectedBank.bankDesc.takeLast(4)} UPI", color = Color.Gray, fontSize = 14.sp)
+                        
+                        bankAccounts.forEach { bank ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { currentSelectedBank = bank }
+                                    .padding(vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(modifier = Modifier.size(32.dp).border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(8.dp)), contentAlignment = Alignment.Center) { coil.compose.AsyncImage(model = getBankLogoUrl(bank.bankName), contentDescription = null, modifier = Modifier.fillMaxSize().padding(4.dp), contentScale = androidx.compose.ui.layout.ContentScale.Fit) }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(bank.accountName, fontSize = 16.sp)
+                                    Text("•• ${bank.bankDesc.takeLast(4)} UPI", color = Color.Gray, fontSize = 14.sp)
+                                }
+                                Text("₹$amount", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                if (currentSelectedBank.id == bank.id) {
+                                    Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF388E3C))
+                                } else {
+                                    Box(modifier = Modifier.size(24.dp))
+                                }
                             }
-                            Text("₹$amount", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF388E3C))
                         }
                     }
                 }
@@ -193,7 +210,7 @@ fun PayAmountScreen(
                 Button(
                     onClick = { 
                         showBottomSheet = false
-                        onProceed(amount, selectedBank)
+                        onProceed(amount, currentSelectedBank)
                     },
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = PhonePePurple),

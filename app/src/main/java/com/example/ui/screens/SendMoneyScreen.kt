@@ -40,7 +40,7 @@ fun SendMoneyScreen(
     val transactions by viewModel.allTransactions.collectAsState()
     
     // Group transactions by payee name to create recent chats
-    val recentChats = transactions.groupBy { it.receiverName }.map { (name, txs) ->
+    val recentChats = transactions.groupBy { it.receiverName.trim() }.map { (name, txs) ->
         val latest = txs.maxByOrNull { it.timestamp }!!
         latest
     }.sortedByDescending { it.timestamp }

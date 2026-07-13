@@ -37,6 +37,13 @@ class PrankViewModel(application: Application) : AndroidViewModel(application) {
     private val _bankAccounts = MutableStateFlow<List<BankAccount>>(prefsManager.getBankAccounts())
     val bankAccounts: StateFlow<List<BankAccount>> = _bankAccounts.asStateFlow()
 
+    private val _isShakeEnabled = MutableStateFlow(prefsManager.isShakeEnabled())
+    val isShakeEnabled: StateFlow<Boolean> = _isShakeEnabled.asStateFlow()
+    fun setShakeEnabled(enabled: Boolean) {
+        _isShakeEnabled.value = enabled
+        prefsManager.setShakeEnabled(enabled)
+    }
+
     fun addBankAccount(account: BankAccount) {
         if (_bankAccounts.value.size < 2) {
             val newList = _bankAccounts.value + account
